@@ -11,7 +11,7 @@ class VariantAttribute extends Model
 
     protected $fillable = ['variant_id', 'attribute_value_id'];
 
-    // Quan hệ với ProductVariant
+    // Quan hệ với ProductVariant 
     public function variant()
     {
         return $this->belongsTo(ProductVariant::class, 'variant_id');

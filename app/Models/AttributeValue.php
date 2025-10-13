@@ -14,13 +14,13 @@ class AttributeValue extends Model
         'value'
     ];
 
-    // Quan hệ với attribute
+    // Quan hệ với attribute 
     public function attribute()
     {
         return $this->belongsTo(Attribute::class);
     }
 
-    // Quan hệ với variant_attributes
+    // Quan hệ với variant_attributes 
     public function variantAttributes()
     {
         return $this->hasMany(VariantAttribute::class, 'attribute_value_id');
