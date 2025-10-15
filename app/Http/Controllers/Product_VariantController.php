@@ -3,15 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-
-
 class Product_VariantController extends Controller
 {
     public function show($id)
     {
-        $product = Product::with(['variants.attributes.attributeValue.attribute'])->findOrFail($id);
+        $product = Product::with(['images','variants.attributes.attributeValue.attribute'])->findOrFail($id);
+
         $attributes = [];
-        foreach ($product->variants as $variant) {
+        foreach ($product->variants as $variant){
             foreach ($variant->attributes as $variantAttribute) {
                 $attribute_name = $variantAttribute->attributeValue->attribute->name;
                 $attribute_value = $variantAttribute->attributeValue->value;
@@ -23,4 +22,5 @@ class Product_VariantController extends Controller
         }
         return view('layouts.admin.detail', compact('product', 'attributes'));
     }
+
 }

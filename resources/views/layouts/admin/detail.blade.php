@@ -221,19 +221,18 @@
                 Product Images
                 <div class="col-lg-6 mb-4 mb-lg-0">
                     <div class="position-relative">
-
-                        <img src="" alt="Product" class="main-image" id="mainImage" width="300px">
+                        <img src="{{ $product->image }}" alt="Product" class="main-image"
+                            style="width:100%; max-width:400px; height:400px; object-fit:cover; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.15)";
+                            id="mainImage">
                     </div>
                     4 image
                     <div class="d-flex gap-2 mt-3">
-                        <img src="/placeholder.svg?height=80&width=80" alt="Thumbnail 1" class="thumbnail active"
-                            onclick="changeImage(this)">
-                        <img src="/placeholder.svg?height=80&width=80" alt="Thumbnail 2" class="thumbnail"
-                            onclick="changeImage(this)">
-                        <img src="/placeholder.svg?height=80&width=80" alt="Thumbnail 3" class="thumbnail"
-                            onclick="changeImage(this)">
-                        <img src="/placeholder.svg?height=80&width=80" alt="Thumbnail 4" class="thumbnail"
-                            onclick="changeImage(this)">
+                        {{-- foreach --}}
+                        @foreach ($product->images as $image)
+                            <img src="{{  $image->link_images }}" alt="Thumbnail"
+                                class="thumbnail active" onclick="changeImage(this)" width="150px" height="150px">
+                        @endforeach
+
                     </div>
                 </div>
 
