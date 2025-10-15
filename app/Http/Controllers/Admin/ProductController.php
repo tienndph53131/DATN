@@ -13,11 +13,14 @@ use Illuminate\Support\Facades\DB;
 class ProductController extends Controller
 {
     // Hiển thị danh sách sản phẩm
-    public function index()
-    {
-        $products = Product::with('category')->latest()->paginate(10);
-        return view('admin.products.index', compact('products'));
-    }
+   public function index()
+{
+    $products = Product::with(['category','variants.attributeValues'])
+        ->withSum('variants', 'stock_quantity') //  cộng dồn stock_quantity
+        ->paginate(10);
+
+    return view('admin.products.index', compact('products'));
+}
 
     // Form thêm sản phẩm
     public function create()
@@ -33,10 +36,11 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required|max:255',
             'category_id' => 'nullable|exists:categories,id',
-            'price' => 'required|numeric',
+           
             'image' => 'nullable|image|mimes:jpg,png,jpeg,webp|max:10048',
-            'quantity' => 'nullable|integer',
-            'sale_price' => 'nullable|numeric',
+           
+             'description' => 'nullable|string',
+            
             'status' => 'boolean',
             'variants.*.price' => 'nullable|numeric',
             'variants.*.stock_quantity' => 'nullable|integer',
@@ -44,7 +48,7 @@ class ProductController extends Controller
         ]);
 
         DB::transaction(function() use ($request) {
-            $data = $request->only(['name','category_id','price','quantity','sale_price','status']);
+            $data = $request->only(['name','category_id','description','status']);
 
             // Xử lý ảnh
             if ($request->hasFile('image')) {
@@ -94,10 +98,11 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required|max:255',
             'category_id' => 'nullable|exists:categories,id',
-            'price' => 'required|numeric',
+            
             'image' => 'nullable|image|mimes:jpg,png,jpeg,webp|max:10048',
-            'quantity' => 'nullable|integer',
-            'sale_price' => 'nullable|numeric',
+            
+            'description' => 'nullable|string',
+           
             'status' => 'boolean',
             'variants.*.price' => 'nullable|numeric',
             'variants.*.stock_quantity' => 'nullable|integer',
@@ -105,7 +110,7 @@ class ProductController extends Controller
         ]);
 
         DB::transaction(function() use ($request, $product) {
-            $data = $request->only(['name','category_id','price','quantity','sale_price','status']);
+            $data = $request->only(['name','category_id','description','status']);
 
             // Xử lý ảnh mới
             if ($request->hasFile('image')) {
@@ -167,4 +172,12 @@ class ProductController extends Controller
 
         return redirect()->route('products.index')->with('success','Xóa sản phẩm thành công!');
     }
+    //  show
+    public function show($id)
+{
+    $product = Product::with(['category', 'variants.attributeValues'])->findOrFail($id);
+
+    return view('admin.products.show', compact('product'));
+}
+
 }
