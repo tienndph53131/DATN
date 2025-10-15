@@ -26,29 +26,22 @@
         </select>
     </div>
 
-    <div class="mb-3">
-        <label>Giá cơ bản</label>
-        <input type="number" name="price" class="form-control" value="{{ old('price', $product->price) }}">
-    </div>
 
-    <div class="mb-3">
-        <label>Số lượng</label>
-        <input type="number" name="quantity" class="form-control" value="{{ old('quantity', $product->quantity) }}">
-    </div>
+   
 
     <div class="mb-3">
         <label>Ảnh sản phẩm</label>
         <input type="file" name="image" class="form-control">
         @if($product->image)
-            <img src="{{ asset('uploads/products/'.$product->image) }}" width="120" class="mt-2">
+            <img src="{{ asset('uploads/products/'.$product->image) }}" width="120" class="mt-2 rounded border">
         @endif
     </div>
 
-    <div class="mb-3">
-        <label>Giá khuyến mãi</label>
-        <input type="number" name="sale_price" class="form-control" value="{{ old('sale_price', $product->sale_price) }}">
-    </div>
-
+    
+<div class="mb-3">
+    <label>Mô tả sản phẩm</label>
+    <textarea name="description" class="form-control" rows="4">{{ old('description', $product->description) }}</textarea>
+</div>
     <div class="mb-3">
         <label>Trạng thái</label>
         <select name="status" class="form-control">
@@ -59,42 +52,71 @@
 
     <hr>
     <h5>Biến thể sản phẩm</h5>
+
+    {{-- Nhập số biến thể mới muốn thêm --}}
+    <div class="mb-3 d-flex align-items-center gap-2">
+        <input type="number" id="variant-count" class="form-control" placeholder="Nhập số lượng biến thể muốn thêm" min="1" style="width:250px;">
+        <button type="button" id="generate-variants" class="btn btn-secondary">Tạo biến thể mới</button>
+    </div>
+
     <div id="variants">
+        {{-- Biến thể hiện có --}}
         @foreach($product->variants as $i => $variant)
-        <div class="variant-item border p-3 mb-2">
-            <input type="number" name="variants[{{ $i }}][price]" class="form-control mb-2" value="{{ $variant->price }}" placeholder="Giá biến thể">
-            <input type="number" name="variants[{{ $i }}][stock_quantity]" class="form-control mb-2" value="{{ $variant->stock_quantity }}" placeholder="Số lượng">
+        <div class="variant-item border p-3 mb-2 rounded">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Biến thể #{{ $i + 1 }}</h6>
+                <button type="button" class="btn btn-danger btn-sm remove-variant">Xóa</button>
+            </div>
 
-            <select name="variants[{{ $i }}][attributes][color]" class="form-control mb-2">
-                <option value="">Chọn màu</option>
-                @foreach($attributes->where('name', 'Màu sắc')->first()->values ?? [] as $val)
-                    <option value="{{ $val->id }}" {{ $variant->attributes->pluck('attribute_value_id')->contains($val->id) ? 'selected' : '' }}>
-                        {{ $val->value }}
-                    </option>
-                @endforeach
-            </select>
+            <div class="row mt-2">
+                <div class="col-md-3 mb-2">
+                    <input type="number" name="variants[{{ $i }}][price]" class="form-control" value="{{ $variant->price }}" placeholder="Giá biến thể">
+                </div>
 
-            <select name="variants[{{ $i }}][attributes][size]" class="form-control mb-2">
-                <option value="">Chọn kích cỡ</option>
-                @foreach($attributes->where('name', 'Kích cỡ')->first()->values ?? [] as $val)
-                    <option value="{{ $val->id }}" {{ $variant->attributes->pluck('attribute_value_id')->contains($val->id) ? 'selected' : '' }}>
-                        {{ $val->value }}
-                    </option>
-                @endforeach
-            </select>
+                <div class="col-md-3 mb-2">
+                    <input type="number" name="variants[{{ $i }}][stock_quantity]" class="form-control" value="{{ $variant->stock_quantity }}" placeholder="Số lượng">
+                </div>
 
-            <button type="button" class="btn btn-danger remove-variant">Xóa</button>
+                <div class="col-md-3 mb-2">
+                    <select name="variants[{{ $i }}][attributes][color]" class="form-control">
+                        <option value="">Chọn màu</option>
+                        @foreach($attributes->where('name', 'Màu sắc')->first()->values ?? [] as $val)
+                            <option value="{{ $val->id }}" {{ $variant->attributes->pluck('attribute_value_id')->contains($val->id) ? 'selected' : '' }}>
+                                {{ $val->value }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-3 mb-2">
+                    <select name="variants[{{ $i }}][attributes][size]" class="form-control">
+                        <option value="">Chọn kích cỡ</option>
+                        @foreach($attributes->where('name', 'Kích cỡ')->first()->values ?? [] as $val)
+                            <option value="{{ $val->id }}" {{ $variant->attributes->pluck('attribute_value_id')->contains($val->id) ? 'selected' : '' }}>
+                                {{ $val->value }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
         </div>
         @endforeach
     </div>
 
-    <button type="button" id="add-variant" class="btn btn-secondary mb-3">Thêm biến thể</button>
-    <button type="submit" class="btn btn-primary">Cập nhật sản phẩm</button>
+    <button type="submit" class="btn btn-primary mt-3">Cập nhật sản phẩm</button>
+    <a href="{{ route('products.index') }}" class="btn btn-secondary mt-3">Hủy</a>
 </form>
 
 <script>
-document.getElementById('add-variant').addEventListener('click', function() {
-    const index = document.querySelectorAll('.variant-item').length;
+document.getElementById('generate-variants').addEventListener('click', function() {
+    const count = parseInt(document.getElementById('variant-count').value);
+    const container = document.getElementById('variants');
+    const currentCount = container.querySelectorAll('.variant-item').length;
+
+    if (isNaN(count) || count <= 0) {
+        alert('Vui lòng nhập số lượng biến thể hợp lệ!');
+        return;
+    }
 
     const colorOptions = `
         <option value="">Chọn màu</option>
@@ -109,31 +131,119 @@ document.getElementById('add-variant').addEventListener('click', function() {
         @endforeach
     `;
 
-    const html = `
-        <div class="variant-item border p-3 mb-2">
-            <input type="number" name="variants[${index}][price]" class="form-control mb-2" placeholder="Giá biến thể">
-            <input type="number" name="variants[${index}][stock_quantity]" class="form-control mb-2" placeholder="Số lượng">
+    for (let i = 0; i < count; i++) {
+        const index = currentCount + i;
+        const html = `
+            <div class="variant-item border p-3 mb-2 rounded">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">Biến thể #${index + 1}</h6>
+                    <button type="button" class="btn btn-danger btn-sm remove-variant">Xóa</button>
+                </div>
 
-            <select name="variants[${index}][attributes][color]" class="form-control mb-2">
-                ${colorOptions}
-            </select>
+                <div class="row mt-2">
+                    <div class="col-md-3 mb-2">
+                        <input type="number" name="variants[${index}][price]" class="form-control" placeholder="Giá biến thể" min="0">
+                    </div>
 
-            <select name="variants[${index}][attributes][size]" class="form-control mb-2">
-                ${sizeOptions}
-            </select>
+                    <div class="col-md-3 mb-2">
+                        <input type="number" name="variants[${index}][stock_quantity]" class="form-control" placeholder="Số lượng" min="0">
+                    </div>
 
-            <button type="button" class="btn btn-danger remove-variant">Xóa</button>
-        </div>
-    `;
-    document.getElementById('variants').insertAdjacentHTML('beforeend', html);
+                    <div class="col-md-3 mb-2">
+                        <select name="variants[${index}][attributes][color]" class="form-control">
+                            ${colorOptions}
+                        </select>
+                    </div>
+
+                    <div class="col-md-3 mb-2">
+                        <select name="variants[${index}][attributes][size]" class="form-control">
+                            ${sizeOptions}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+    }
+
+    document.getElementById('variant-count').value = '';
 });
 
 // Xóa biến thể
-document.addEventListener('click', function(e){
-    if(e.target.classList.contains('remove-variant')){
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('remove-variant')) {
         e.target.closest('.variant-item').remove();
+        document.querySelectorAll('.variant-item').forEach((item, idx) => {
+            item.querySelector('h6').textContent = `Biến thể #${idx + 1}`;
+        });
+    }
+});
+
+//  Kiểm tra trước khi submit form
+document.querySelector('form').addEventListener('submit', function(e) {
+    const variants = document.querySelectorAll('.variant-item');
+    if (variants.length === 0) {
+        e.preventDefault();
+        alert('Phải có ít nhất một biến thể sản phẩm!');
+        return;
+    }
+
+    let hasError = false;
+    const seen = new Set();
+
+    variants.forEach((item) => {
+        const priceInput = item.querySelector('input[name*="[price]"]');
+        const stockInput = item.querySelector('input[name*="[stock_quantity]"]');
+        const colorSelect = item.querySelector('select[name*="[attributes][color]"]');
+        const sizeSelect = item.querySelector('select[name*="[attributes][size]"]');
+
+        const price = priceInput.value.trim();
+        const stock = stockInput.value.trim();
+        const color = colorSelect.value;
+        const size = sizeSelect.value;
+
+        // Reset viền trước khi kiểm tra
+        item.querySelectorAll('input, select').forEach(el => el.style.border = '');
+
+        //  Kiểm tra thiếu thông tin
+        if (!price || !stock || !color || !size) {
+            hasError = true;
+            item.querySelectorAll('input, select').forEach(el => {
+                if (!el.value) el.style.border = '2px solid red';
+            });
+        }
+
+        //  Kiểm tra giá và số lượng nhỏ hơn 0
+        if (parseFloat(price) < 0) {
+            hasError = true;
+            priceInput.style.border = '2px solid red';
+            alert('Giá không được nhỏ hơn 0!');
+        }
+
+        if (parseInt(stock) < 0) {
+            hasError = true;
+            stockInput.style.border = '2px solid red';
+            alert('Số lượng không được nhỏ hơn 0!');
+        }
+
+        //  Kiểm tra trùng lặp (nếu đủ thông tin)
+        if (color && size) {
+            const key = `${color}-${size}`;
+            if (seen.has(key)) {
+                hasError = true;
+                colorSelect.style.border = sizeSelect.style.border = '2px solid red';
+                alert('Có biến thể bị trùng màu và size!');
+            }
+            seen.add(key);
+        }
+    });
+
+    if (hasError) {
+        e.preventDefault();
     }
 });
 </script>
-<a href="{{ route('products.index') }}" class="btn btn-secondary">Hủy</a>
+
+
+
 @endsection

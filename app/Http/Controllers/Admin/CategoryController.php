@@ -22,17 +22,20 @@ class CategoryController extends Controller
         return view('admin.categories.create');
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|max:255',
-            'description' => 'nullable',
-        ]);
+   public function store(Request $request)
+{
+    $request->validate([
+        'name' => 'required|max:255',
+        'description' => 'nullable|string',
+    ], [
+        'name.required' => 'Vui lòng nhập tên danh mục!',
+        'name.max' => 'Tên danh mục không được vượt quá 255 ký tự!',
+    ]);
 
-        Category::create($request->all());
+    Category::create($request->only(['name', 'description']));
 
-        return redirect()->route('categories.index')->with('success', 'Thêm danh mục thành công!');
-    }
+    return redirect()->route('categories.index')->with('success', 'Thêm danh mục thành công!');
+}
 
     public function edit(Category $category)
     {
@@ -43,7 +46,13 @@ class CategoryController extends Controller
     {
         $request->validate([
             'name' => 'required|max:255',
-            'description' => 'nullable',
+            'description' => 'nullable|string',
+        ],[
+             'name.required' => 'Vui lòng nhập tên danh mục!',
+            'name.max' => 'Tên danh mục không được vượt quá 255 ký tự!',
+
+        
+
         ]);
 
         $category->update($request->all());
@@ -51,9 +60,14 @@ class CategoryController extends Controller
         return redirect()->route('categories.index')->with('success', 'Cập nhật danh mục thành công!');
     }
 
-    public function destroy(Category $category)
-    {
-        $category->delete();
-        return redirect()->route('categories.index')->with('success', 'Xóa danh mục thành công!');
+   public function destroy(Category $category)
+{
+    if ($category->products()->count() > 0) {
+        return redirect()->route('categories.index')
+            ->with('error', 'Danh mục này còn sản phẩm, không thể xóa!');
     }
+
+    $category->delete();
+    return redirect()->route('categories.index')->with('success', 'Xóa danh mục thành công!');
+}
 }
