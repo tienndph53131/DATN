@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Detail Page</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         body {
@@ -229,8 +230,8 @@
                     <div class="d-flex gap-2 mt-3">
                         {{-- foreach --}}
                         @foreach ($product->images as $image)
-                            <img src="{{  $image->link_images }}" alt="Thumbnail"
-                                class="thumbnail active" onclick="changeImage(this)" width="150px" height="150px">
+                            <img src="{{ $image->link_images }}" alt="Thumbnail" class="thumbnail active"
+                                onclick="changeImage(this)" width="150px" height="150px">
                         @endforeach
 
                     </div>
