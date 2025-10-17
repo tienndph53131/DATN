@@ -17,9 +17,11 @@ return new class extends Migration
             $table->string('name');
             $table->string('phone');
             $table->string('email')->nullable();
-            $table->string('city');
-            $table->string('district');
-            $table->string('ward');
+            $table->string('district_id');
+            $table->string('district_name');
+            $table->string('province_id');
+            $table->string('province_name');
+            $table->string('ward_name');
             $table->string('address_detail');
             $table->boolean('is_default')->default(false);
             $table->timestamps();
