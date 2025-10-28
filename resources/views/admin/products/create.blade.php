@@ -47,17 +47,33 @@
     <hr>
     <h5>Biến thể sản phẩm</h5>
 
-    <div class="mb-3 d-flex align-items-center gap-2">
-        <input type="number" id="variant-count" class="form-control" placeholder="Nhập số lượng biến thể" min="1" style="width:200px;">
-        <button type="button" id="generate-variants" class="btn btn-secondary">Tạo biến thể</button>
+    {{-- Chọn màu sắc và kích cỡ bằng checkbox --}}
+    <div class="row mb-3">
+        <div class="col-md-5">
+            <label><strong>Chọn Màu sắc</strong></label><br>
+            @foreach($attributes->where('name','Màu sắc')->first()->values ?? [] as $val)
+                <label class="me-3">
+                    <input type="checkbox" name="selectedColors[]" value="{{ $val->id }}"> {{ $val->value }}
+                </label>
+            @endforeach
+        </div>
+        <div class="col-md-5">
+            <label><strong>Chọn Kích cỡ</strong></label><br>
+            @foreach($attributes->where('name','Kích cỡ')->first()->values ?? [] as $val)
+                <label class="me-3">
+                    <input type="checkbox" name="selectedSizes[]" value="{{ $val->id }}"> {{ $val->value }}
+                </label>
+            @endforeach
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="button" id="generate-variants" class="btn btn-secondary w-100">Tạo biến thể</button>
+        </div>
     </div>
 
     <div id="variants"></div>
 
-    {{--  Input ẩn để gửi tổng số lượng --}}
     <input type="hidden" name="total_quantity" id="total_quantity" value="0">
 
-    {{-- Hiển thị tổng số lượng bên ngoài cho admin xem --}}
     <div class="alert alert-info mt-3" id="totalDisplay" style="display:none;">
         Tổng số lượng sản phẩm: <strong id="totalCount">0</strong>
     </div>
@@ -68,91 +84,88 @@
 
 
 <script>
+// 🔹 Tạo biến thể từ checkbox
 document.getElementById('generate-variants').addEventListener('click', function() {
-    const count = parseInt(document.getElementById('variant-count').value);
     const container = document.getElementById('variants');
-    const currentCount = container.querySelectorAll('.variant-item').length;
+    const colors = Array.from(document.querySelectorAll('input[name="selectedColors[]"]:checked'));
+    const sizes = Array.from(document.querySelectorAll('input[name="selectedSizes[]"]:checked'));
 
-    if (isNaN(count) || count <= 0) {
-        alert('Vui lòng nhập số lượng biến thể hợp lệ!');
+    if (colors.length === 0 || sizes.length === 0) {
+        alert('Vui lòng chọn ít nhất một màu và một kích cỡ!');
         return;
     }
 
-    const colorOptions = `
-        <option value="">Chọn màu</option>
-        @foreach($attributes->where('name', 'Màu sắc')->first()->values ?? [] as $val)
-            <option value="{{ $val->id }}">{{ $val->value }}</option>
-        @endforeach
-    `;
-    const sizeOptions = `
-        <option value="">Chọn kích cỡ</option>
-        @foreach($attributes->where('name', 'Kích cỡ')->first()->values ?? [] as $val)
-            <option value="{{ $val->id }}">{{ $val->value }}</option>
-        @endforeach
-    `;
+    // Xóa danh sách cũ
+    container.innerHTML = '';
 
-    for (let i = 0; i < count; i++) {
-        const index = currentCount + i;
-        const html = `
-            <div class="variant-item border p-3 mb-3 rounded position-relative">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="mb-0">Biến thể #${index + 1}</h6>
-                    <button type="button" class="btn btn-danger btn-sm remove-variant">Xóa</button>
-                </div>
+    let index = 0;
+    let stt = 1;
 
-                <div class="row">
-                    <div class="col-md-3 mb-2">
-                        <input type="number" name="variants[${index}][price]" class="form-control" placeholder="Giá biến thể">
-                        <small class="text-danger error-text"></small>
+    for (const color of colors) {
+        for (const size of sizes) {
+            const colorLabel = color.nextSibling.textContent.trim();
+            const sizeLabel = size.nextSibling.textContent.trim();
+
+            const html = `
+                <div class="variant-item border p-3 mb-3 rounded position-relative">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">#${stt}. Biến thể: ${colorLabel} - ${sizeLabel}</h6>
+                        <button type="button" class="btn btn-danger btn-sm remove-variant">Xóa</button>
                     </div>
 
-                    <div class="col-md-3 mb-2">
-                        <input type="number" name="variants[${index}][stock_quantity]" class="form-control stock-input" placeholder="Số lượng" >
-                        <small class="text-danger error-text"></small>
-                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <input type="number" name="variants[${index}][price]" class="form-control" placeholder="Giá biến thể">
+                            <small class="text-danger error-text"></small>
+                        </div>
 
-                    <div class="col-md-3 mb-2">
-                        <select name="variants[${index}][attributes][color]" class="form-control">
-                            ${colorOptions}
-                        </select>
-                        <small class="text-danger error-text"></small>
-                    </div>
+                        <div class="col-md-4 mb-2">
+                            <input type="number" name="variants[${index}][stock_quantity]" class="form-control stock-input" placeholder="Số lượng">
+                            <small class="text-danger error-text"></small>
+                        </div>
 
-                    <div class="col-md-3 mb-2">
-                        <select name="variants[${index}][attributes][size]" class="form-control">
-                            ${sizeOptions}
-                        </select>
-                        <small class="text-danger error-text"></small>
+                        <input type="hidden" name="variants[${index}][attributes][color]" value="${color.value}">
+                        <input type="hidden" name="variants[${index}][attributes][size]" value="${size.value}">
                     </div>
                 </div>
-            </div>
-        `;
-        container.insertAdjacentHTML('beforeend', html);
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+            index++;
+            stt++;
+        }
     }
 
-    document.getElementById('variant-count').value = '';
     updateTotalQuantity();
+    updateVariantOrder();
 });
 
-// Xóa biến thể
+// 🔹 Xóa biến thể
 document.addEventListener('click', function(e) {
     if (e.target.classList.contains('remove-variant')) {
         e.target.closest('.variant-item').remove();
-        document.querySelectorAll('.variant-item').forEach((item, idx) => {
-            item.querySelector('h6').textContent = `Biến thể #${idx + 1}`;
-        });
         updateTotalQuantity();
+        updateVariantOrder();
     }
 });
 
-// Tự động tính tổng số lượng mỗi khi thay đổi số lượng
+// 🔹 Cập nhật lại số thứ tự khi xóa hoặc thêm
+function updateVariantOrder() {
+    const items = document.querySelectorAll('.variant-item h6');
+    let i = 1;
+    items.forEach(item => {
+        item.innerHTML = item.innerHTML.replace(/#\d+/, `#${i}`);
+        i++;
+    });
+}
+
+// 🔹 Tự động tính tổng số lượng
 document.addEventListener('input', function(e) {
     if (e.target.classList.contains('stock-input')) {
         updateTotalQuantity();
     }
 });
 
-//  Hàm tính tổng số lượng biến thể
+// 🔹 Hàm tính tổng số lượng
 function updateTotalQuantity() {
     let total = 0;
     document.querySelectorAll('.stock-input').forEach(input => {
@@ -171,7 +184,7 @@ function updateTotalQuantity() {
     }
 }
 
-//  Kiểm tra lỗi trước khi submit 
+// 🔹 Validate trước khi submit
 document.getElementById('productForm').addEventListener('submit', function(e) {
     e.preventDefault();
     let hasError = false;
@@ -182,7 +195,6 @@ document.getElementById('productForm').addEventListener('submit', function(e) {
 
     const form = e.target;
 
-    // Kiểm tra tên sản phẩm
     const name = form.querySelector('input[name="name"]');
     if (!name.value.trim()) {
         hasError = true;
@@ -190,7 +202,6 @@ document.getElementById('productForm').addEventListener('submit', function(e) {
         name.nextElementSibling.textContent = 'Vui lòng nhập tên sản phẩm.';
     }
 
-    // Kiểm tra danh mục
     const category = form.querySelector('select[name="category_id"]');
     if (!category.value) {
         hasError = true;
@@ -198,30 +209,22 @@ document.getElementById('productForm').addEventListener('submit', function(e) {
         category.nextElementSibling.textContent = 'Vui lòng chọn danh mục.';
     }
 
-    // Kiểm tra ảnh
     const image = form.querySelector('input[name="image"]');
-    @if(!old('image'))
     if (!image.value) {
         hasError = true;
         image.style.border = '2px solid red';
         image.nextElementSibling.textContent = 'Vui lòng chọn ảnh sản phẩm.';
     }
-    @endif
 
     const variants = document.querySelectorAll('.variant-item');
-    const seen = new Set();
-
     if (variants.length === 0) {
-        alert('Vui lòng thêm ít nhất một biến thể sản phẩm!');
+        alert('Vui lòng tạo ít nhất một biến thể!');
         return;
     }
 
-    // Kiểm tra từng biến thể
     variants.forEach(item => {
         const price = item.querySelector('input[name*="[price]"]');
         const stock = item.querySelector('input[name*="[stock_quantity]"]');
-        const color = item.querySelector('select[name*="[color]"]');
-        const size = item.querySelector('select[name*="[size]"]');
         const errors = item.querySelectorAll('.error-text');
 
         if (!price.value) {
@@ -243,29 +246,6 @@ document.getElementById('productForm').addEventListener('submit', function(e) {
             stock.style.border = '2px solid red';
             errors[1].textContent = 'Số lượng không được nhỏ hơn 0.';
         }
-
-        if (!color.value) {
-            hasError = true;
-            color.style.border = '2px solid red';
-            errors[2].textContent = 'Chọn màu.';
-        }
-
-        if (!size.value) {
-            hasError = true;
-            size.style.border = '2px solid red';
-            errors[3].textContent = 'Chọn size.';
-        }
-
-        // Kiểm tra trùng màu + size
-        const combo = `${color.value}-${size.value}`;
-        if (seen.has(combo)) {
-            hasError = true;
-            color.style.border = '2px solid red';
-            size.style.border = '2px solid red';
-            errors[2].textContent = 'Trùng với biến thể khác.';
-            errors[3].textContent = 'Trùng với biến thể khác.';
-        }
-        seen.add(combo);
     });
 
     if (!hasError) {
@@ -276,11 +256,8 @@ document.getElementById('productForm').addEventListener('submit', function(e) {
 </script>
 
 <style>
-.error-text {
-    font-size: 13px;
-    margin-top: 2px;
-    display: block;
-}
+.error-text { font-size: 13px; margin-top: 2px; display: block; }
+label.me-3 { font-weight: normal; }
+.variant-item { background: #f9f9f9; }
 </style>
-
 @endsection

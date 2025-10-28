@@ -17,6 +17,7 @@ class ProductController extends Controller
 {
     $products = Product::with(['category','variants.attributeValues'])
         ->withSum('variants', 'stock_quantity') //  cộng dồn stock_quantity
+         ->orderBy('created_at', 'desc')
         ->paginate(10);
 
     return view('admin.products.index', compact('products'));

@@ -61,6 +61,9 @@
     <a href="{{ url('/admin/categories') }}" class="{{ request()->is('admin/categories*') ? 'active' : '' }}"><i class="fa-solid fa-layer-group"></i> Danh mục</a>
     <a href="{{ url('/admin/products') }}" class="{{ request()->is('admin/products*') ? 'active' : '' }}"><i class="fa-solid fa-shirt"></i> Sản phẩm</a>
     <a href="{{ url('/admin/orders') }}" class="{{ request()->is('admin/orders*') ? 'active' : '' }}"><i class="fa-solid fa-receipt"></i> Đơn hàng</a>
+<a href="{{ url('/admin/attribute_values') }}" class="{{ request()->is('admin/attribute_values*') ? 'active' : '' }}">
+    <i class="fa-solid fa-tag"></i> Giá trị thuộc tính
+</a>
     <a href="{{ url('/admin/users') }}" class="{{ request()->is('admin/users*') ? 'active' : '' }}"><i class="fa-solid fa-users"></i> Người dùng</a>
     <a href="{{ url('/') }}"><i class="fa-solid fa-house"></i> Trang chủ</a>
 </div>

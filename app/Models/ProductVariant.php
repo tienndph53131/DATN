@@ -27,5 +27,10 @@ class ProductVariant extends Model
 {
     return $this->belongsToMany(AttributeValue::class, 'variant_attributes', 'variant_id', 'attribute_value_id');
 }
+public function images()
+{
+    return $this->hasMany(ProductImage::class, 'variant_id');
+}
+
 
 }

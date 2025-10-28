@@ -8,17 +8,19 @@ return new class extends Migration {
     public function up(): void {
         Schema::create('accounts', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name', 100);
             $table->string('avatar')->nullable();
             $table->date('birthday')->nullable();
-            $table->string('email')->unique();
+            $table->string('email', 100)->unique();
             $table->string('phone', 20)->nullable();
             $table->enum('sex', ['male', 'female', 'other'])->nullable();
-            $table->string('address')->nullable();
             $table->string('password');
-            $table->foreignId('role_id')->nullable()->constrained('roles')->nullOnDelete();
+            $table->unsignedBigInteger('role_id')->nullable();
             $table->tinyInteger('status')->default(1);
             $table->timestamps();
+
+            // Khóa ngoại
+            $table->foreign('role_id')->references('id')->on('roles')->onDelete('set null');
         });
     }
 
