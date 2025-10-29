@@ -35,7 +35,7 @@
             border-radius: 5px;
         }
         .sidebar a:hover, .sidebar a.active {
-            background: #4b5563;
+            background: #4b55a63;
             color: #fff;
         }
         .sidebar i { margin-right: 10px; width: 20px; text-align: center; }

@@ -13,15 +13,15 @@ use Illuminate\Support\Facades\DB;
 class ProductController extends Controller
 {
     // Hiển thị danh sách sản phẩm
-   public function index()
-{
-    $products = Product::with(['category','variants.attributeValues'])
-        ->withSum('variants', 'stock_quantity') //  cộng dồn stock_quantity
-         ->orderBy('created_at', 'desc')
-        ->paginate(10);
+    public function index()
+    {
+        $products = Product::with(['category', 'variants.attributeValues'])
+            ->withSum('variants', 'stock_quantity') //  cộng dồn stock_quantity
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
 
-    return view('admin.products.index', compact('products'));
-}
+        return view('admin.products.index', compact('products'));
+    }
 
     // Form thêm sản phẩm
     public function create()
@@ -37,24 +37,24 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required|max:255',
             'category_id' => 'nullable|exists:categories,id',
-           
+
             'image' => 'nullable|image|mimes:jpg,png,jpeg,webp|max:10048',
-           
-             'description' => 'nullable|string',
-            
+
+            'description' => 'nullable|string',
+
             'status' => 'boolean',
             'variants.*.price' => 'nullable|numeric',
             'variants.*.stock_quantity' => 'nullable|integer',
             'variants.*.attributes' => 'nullable|array'
         ]);
 
-        DB::transaction(function() use ($request) {
-            $data = $request->only(['name','category_id','description','status']);
+        DB::transaction(function () use ($request) {
+            $data = $request->only(['name', 'category_id', 'description', 'status']);
 
             // Xử lý ảnh
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
-                $fileName = time().'_'.$file->getClientOriginalName();
+                $fileName = time() . '_' . $file->getClientOriginalName();
                 $file->move(public_path('uploads/products'), $fileName);
                 $data['image'] = $fileName;
             }
@@ -81,7 +81,7 @@ class ProductController extends Controller
             }
         });
 
-        return redirect()->route('products.index')->with('success','Thêm sản phẩm thành công!');
+        return redirect()->route('products.index')->with('success', 'Thêm sản phẩm thành công!');
     }
 
     // Form chỉnh sửa sản phẩm
@@ -90,7 +90,7 @@ class ProductController extends Controller
         $categories = Category::all();
         $attributes = Attribute::with('values')->get();
         $product->load('variants.attributes.attributeValue'); // load biến thể + thuộc tính
-        return view('admin.products.edit', compact('product','categories','attributes'));
+        return view('admin.products.edit', compact('product', 'categories', 'attributes'));
     }
 
     // Cập nhật sản phẩm
@@ -99,27 +99,27 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required|max:255',
             'category_id' => 'nullable|exists:categories,id',
-            
+
             'image' => 'nullable|image|mimes:jpg,png,jpeg,webp|max:10048',
-            
+
             'description' => 'nullable|string',
-           
+
             'status' => 'boolean',
             'variants.*.price' => 'nullable|numeric',
-            'variants.*.stock_quantity' => 'nullable|integer',
+            'variants.*.stock_quantity' => 'nullable|integer|min:0',
             'variants.*.attributes' => 'nullable|array'
         ]);
 
-        DB::transaction(function() use ($request, $product) {
-            $data = $request->only(['name','category_id','description','status']);
+        DB::transaction(function () use ($request, $product) {
+            $data = $request->only(['name', 'category_id', 'description', 'status']);
 
             // Xử lý ảnh mới
             if ($request->hasFile('image')) {
-                if ($product->image && File::exists(public_path('uploads/products/'.$product->image))) {
-                    File::delete(public_path('uploads/products/'.$product->image));
+                if ($product->image && File::exists(public_path('uploads/products/' . $product->image))) {
+                    File::delete(public_path('uploads/products/' . $product->image));
                 }
                 $file = $request->file('image');
-                $fileName = time().'_'.$file->getClientOriginalName();
+                $fileName = time() . '_' . $file->getClientOriginalName();
                 $file->move(public_path('uploads/products'), $fileName);
                 $data['image'] = $fileName;
             }
@@ -135,6 +135,9 @@ class ProductController extends Controller
             // Lưu lại biến thể mới
             if ($request->has('variants')) {
                 foreach ($request->variants as $v) {
+                    if (isset($v['stock_quantity']) && $v['stock_quantity'] < 0) {
+                        throw new \Exception('Số lượng không khong hop le!');
+                    }
                     $variant = $product->variants()->create([
                         'price' => $v['price'] ?? $product->price,
                         'stock_quantity' => $v['stock_quantity'] ?? 0,
@@ -152,15 +155,15 @@ class ProductController extends Controller
             }
         });
 
-        return redirect()->route('products.index')->with('success','Cập nhật sản phẩm thành công!');
+        return redirect()->route('products.index')->with('success', 'Cập nhật sản phẩm thành công!');
     }
 
     // Xóa sản phẩm
     public function destroy(Product $product)
     {
-        DB::transaction(function() use ($product) {
-            if ($product->image && File::exists(public_path('uploads/products/'.$product->image))) {
-                File::delete(public_path('uploads/products/'.$product->image));
+        DB::transaction(function () use ($product) {
+            if ($product->image && File::exists(public_path('uploads/products/' . $product->image))) {
+                File::delete(public_path('uploads/products/' . $product->image));
             }
 
             foreach ($product->variants as $variant) {
@@ -171,14 +174,13 @@ class ProductController extends Controller
             $product->delete();
         });
 
-        return redirect()->route('products.index')->with('success','Xóa sản phẩm thành công!');
+        return redirect()->route('products.index')->with('success', 'Xóa sản phẩm thành công!');
     }
     //  show
     public function show($id)
-{
-    $product = Product::with(['category', 'variants.attributeValues'])->findOrFail($id);
+    {
+        $product = Product::with(['category', 'variants.attributeValues'])->findOrFail($id);
 
-    return view('admin.products.show', compact('product'));
-}
-
+        return view('admin.products.show', compact('product'));
+    }
 }

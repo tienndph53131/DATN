@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Client;
+
 use App\Models\Category;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -8,7 +9,7 @@ use App\Models\ProductVariant;
 
 class CartController extends Controller
 {
-   
+
     // Trang xem giỏ hàng
     public function index()
     {
@@ -25,7 +26,12 @@ class CartController extends Controller
     // Thêm vào giỏ hàng
     public function add(Request $request)
     {
-            $categories = Category::orderBy('name')->get(); 
+        $request->validate([
+            'variant_id' => 'required|exists:product_variants,id',
+            'quantity' => 'required|integer|min:1'
+        ]);
+
+        $categories = Category::orderBy('name')->get();
         $variantId = $request->input('variant_id');
         $quantity = $request->input('quantity', 1);
 
@@ -36,7 +42,10 @@ class CartController extends Controller
         }
 
         $cart = session()->get('cart', []);
-
+        $quantityInCart = isset($cart[$variantId]) ? $cart[$variantId]['quantity'] : 0;
+        if ($quantity + $quantityInCart > $variant->stock_quantity) {
+            return back()->with('error', 'Số lượng sản phẩm không đủ!');
+        }
         if (isset($cart[$variantId])) {
             $cart[$variantId]['quantity'] += $quantity;
         } else {
@@ -48,7 +57,6 @@ class CartController extends Controller
                 'image' => $variant->product->image,
             ];
         }
-
         session()->put('cart', $cart);
 
         return redirect()->route('cart.index')->with('success', 'Đã thêm vào giỏ hàng!');
@@ -75,7 +83,10 @@ class CartController extends Controller
         $quantity = (int) $request->input('quantity');
 
         $cart = session()->get('cart', []);
-
+        $variant = ProductVariant::find($variantId);
+        if ($quantity > $variant['stock_quantity']) {
+            return back()->with('error', 'Số lượng sản phẩm không đủ!');
+        } // check so luong ton kho voi cap nhat so luong san pham
         if (isset($cart[$variantId]) && $quantity > 0) {
             $cart[$variantId]['quantity'] = $quantity;
             session()->put('cart', $cart);
