@@ -2,6 +2,13 @@
 
 namespace App\Models;
 
+<<<<<<< HEAD
+=======
+use App\Models\AttributeValue;
+use App\Models\VariantAttribute;
+
+
+>>>>>>> origin/tien
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 

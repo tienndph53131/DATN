@@ -18,9 +18,15 @@
                 <th>Ảnh</th>
                 <th>Tên</th>
                 <th>Danh mục</th>
+<<<<<<< HEAD
                 <th>Giá</th>
                 <th>Giá KM</th>
                 <th>SL</th>
+=======
+              <th>Số lượng</th>
+               <th> Giá & Biến thể</th>
+                
+>>>>>>> origin/tien
                 <th>Trạng thái</th>
                 <th>Ngày tạo</th> <!-- Chỉ hiển thị ngày -->
                 <th>Hành động</th>
@@ -37,6 +43,7 @@
                     </td>
                     <td>{{ $pro->name }}</td>
                     <td>{{ $pro->category->name ?? 'Không có' }}</td>
+<<<<<<< HEAD
                     <td>{{ number_format($pro->price) }} đ</td>
                     <td>
                         @if($pro->sale_price && $pro->sale_price < $pro->price)
@@ -49,6 +56,32 @@
                     <td>{{ $pro->status ? 'còn' : 'hết hàng' }}</td>
                     <td>{{ $pro->created_at->format('d/m/Y') }}</td> <!-- Chỉ lấy ngày -->
                     <td>
+=======
+                   
+                   <td>{{ $pro->variants_sum_stock_quantity ?? 0 }}</td>
+                     <td>
+                        @forelse($pro->variants as $variant)
+                            <div class="border-bottom py-1">
+                                <strong>{{ number_format($variant->price, 0, ',', '.') }}₫</strong>
+                                <br>
+                                @if($variant->attributeValues->count())
+                                    @foreach($variant->attributeValues as $attr)
+                                        <small>{{ $attr->value }}</small>@if(!$loop->last), @endif
+                                    @endforeach
+                                @else
+                                    <small>Không có thuộc tính</small>
+                                @endif
+                            </div>
+                        @empty
+                            <em>Không có biến thể</em>
+                        @endforelse
+                    </td>
+                  
+                    <td>{{ $pro->status ? 'còn' : 'hết hàng' }}</td>
+                    <td>{{ $pro->created_at->format('d/m/Y') }}</td> <!-- Chỉ lấy ngày -->
+                    <td>
+                         <a href="{{ route('products.show', $pro->id) }}" class="btn btn-info btn-sm">Xem</a>
+>>>>>>> origin/tien
                         <a href="{{ route('products.edit', $pro->id) }}" class="btn btn-warning btn-sm">Sửa</a>
                         <form action="{{ route('products.destroy', $pro->id) }}" method="POST" class="d-inline">
                             @csrf

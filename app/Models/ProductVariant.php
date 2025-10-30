@@ -21,5 +21,20 @@ class ProductVariant extends Model
     public function attributes()
     {
         return $this->hasMany(VariantAttribute::class, 'variant_id');
+<<<<<<< HEAD
     }
+=======
+ 
+    }
+    public function attributeValues()
+{
+    return $this->belongsToMany(AttributeValue::class, 'variant_attributes', 'variant_id', 'attribute_value_id');
+}
+public function images()
+{
+    return $this->hasMany(ProductImage::class, 'variant_id');
+}
+
+
+>>>>>>> origin/tien
 }

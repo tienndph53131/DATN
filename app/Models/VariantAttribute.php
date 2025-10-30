@@ -2,6 +2,13 @@
 
 namespace App\Models;
 
+<<<<<<< HEAD
+=======
+use App\Models\AttributeValue;
+
+
+
+>>>>>>> origin/tien
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -11,7 +18,11 @@ class VariantAttribute extends Model
 
     protected $fillable = ['variant_id', 'attribute_value_id'];
 
+<<<<<<< HEAD
     // Quan hệ với ProductVariant 
+=======
+    // Quan hệ với ProductVariant
+>>>>>>> origin/tien
     public function variant()
     {
         return $this->belongsTo(ProductVariant::class, 'variant_id');
