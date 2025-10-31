@@ -21,9 +21,7 @@ class ProductVariant extends Model
     public function attributes()
     {
         return $this->hasMany(VariantAttribute::class, 'variant_id');
-<<<<<<< HEAD
-    }
-=======
+
  
     }
     public function attributeValues()
@@ -36,5 +34,5 @@ public function images()
 }
 
 
->>>>>>> origin/tien
+
 }

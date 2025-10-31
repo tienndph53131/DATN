@@ -1,9 +1,7 @@
 <?php
 
-<<<<<<< HEAD
-use App\Http\Controllers\AuthController;
-=======
->>>>>>> origin/tien
+
+
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,15 +17,6 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
-<<<<<<< HEAD
-use App\Http\Controllers\Product_VariantController;
-
-    Route::prefix('admin')->group(function () {
-        Route::resource('categories', CategoryController::class);
-        Route::resource('products', ProductController::class);
-    });
-Route::get('/products/{id}', [Product_VariantController::class, 'show'])->name('products.show');
-=======
 use App\Http\Controllers\Admin\AttributeValueController;
 use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\CartController;
@@ -49,4 +38,4 @@ Route::post('/cart/update', [CartController::class, 'update'])->name('cart.updat
 // });
 
 
->>>>>>> origin/tien
+

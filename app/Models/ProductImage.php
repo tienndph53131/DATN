@@ -8,15 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ProductImage extends Model
 {
     use HasFactory;
-<<<<<<< HEAD
-    protected $fillable = [
-        'product_id',
-        'link_images'
-    ];
-    public function product(){
-        return $this->belongsTo(Product::class);
-    }  
-=======
+
 
     protected $table = 'product_images';
 
@@ -37,5 +29,5 @@ class ProductImage extends Model
     {
         return $this->belongsTo(ProductVariant::class, 'variant_id');
     }
->>>>>>> origin/tien
+
 }

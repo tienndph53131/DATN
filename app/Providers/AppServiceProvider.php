@@ -1,12 +1,10 @@
 <?php
 
 namespace App\Providers;
-<<<<<<< HEAD
 
-=======
 use Illuminate\Support\Facades\View;
 use App\Models\Category;
->>>>>>> origin/tien
+
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,12 +20,7 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-<<<<<<< HEAD
-    public function boot(): void
-    {
-        //
-    }
-=======
+
    public function boot(): void
 {
     // Chia sẻ $categories với mọi view header
@@ -36,5 +29,5 @@ class AppServiceProvider extends ServiceProvider
         $view->with('categories', $categories);
     });
 }
->>>>>>> origin/tien
+
 }
