@@ -8,12 +8,11 @@
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
-<<<<<<< HEAD
-=======
+
     @if(session('error'))
     <div class="alert alert-danger">{{ session('error') }}</div>
 @endif
->>>>>>> origin/tien
+
 
     <table class="table table-bordered">
         <thead>

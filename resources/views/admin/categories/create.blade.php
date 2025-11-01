@@ -5,12 +5,7 @@
     <h2>Thêm danh mục mới</h2>
     <form action="{{ route('categories.store') }}" method="POST">
         @csrf
-<<<<<<< HEAD
-        <div class="mb-3">
-            <label>Tên danh mục</label>
-            <input type="text" name="name" class="form-control" required>
-        </div>
-=======
+
     <div class="mb-3">
     <label>Tên danh mục</label>
     <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}">
@@ -20,7 +15,6 @@
 </div>
 
 
->>>>>>> origin/tien
         <div class="mb-3">
             <label>Mô tả</label>
             <textarea name="description" class="form-control"></textarea>

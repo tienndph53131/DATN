@@ -6,11 +6,7 @@
     <form action="{{ route('categories.update', $category->id) }}" method="POST">
         @csrf
         @method('PUT')
-<<<<<<< HEAD
-        <div class="mb-3">
-            <label>Tên danh mục</label>
-            <input type="text" name="name" class="form-control" value="{{ $category->name }}" required>
-=======
+
          <div class="mb-3">
             <label for="name" class="form-label">Tên danh mục</label>
             <input 
@@ -24,7 +20,7 @@
             @error('name')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
->>>>>>> origin/tien
+
         </div>
         <div class="mb-3">
             <label>Mô tả</label>

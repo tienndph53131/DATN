@@ -26,36 +26,12 @@
         </select>
     </div>
 
-<<<<<<< HEAD
-    <div class="mb-3">
-        <label>Giá cơ bản</label>
-        <input type="number" name="price" class="form-control" value="{{ old('price', $product->price) }}">
-    </div>
 
-    <div class="mb-3">
-        <label>Số lượng</label>
-        <input type="number" name="quantity" class="form-control" value="{{ old('quantity', $product->quantity) }}">
-    </div>
-=======
-
-   
->>>>>>> origin/tien
 
     <div class="mb-3">
         <label>Ảnh sản phẩm</label>
         <input type="file" name="image" class="form-control">
         @if($product->image)
-<<<<<<< HEAD
-            <img src="{{ asset('uploads/products/'.$product->image) }}" width="120" class="mt-2">
-        @endif
-    </div>
-
-    <div class="mb-3">
-        <label>Giá khuyến mãi</label>
-        <input type="number" name="sale_price" class="form-control" value="{{ old('sale_price', $product->sale_price) }}">
-    </div>
-
-=======
             <img src="{{ asset('uploads/products/'.$product->image) }}" width="120" class="mt-2 rounded border">
         @endif
     </div>
@@ -65,7 +41,7 @@
     <label>Mô tả sản phẩm</label>
     <textarea name="description" class="form-control" rows="4">{{ old('description', $product->description) }}</textarea>
 </div>
->>>>>>> origin/tien
+
     <div class="mb-3">
         <label>Trạng thái</label>
         <select name="status" class="form-control">
@@ -76,34 +52,13 @@
 
     <hr>
     <h5>Biến thể sản phẩm</h5>
-<<<<<<< HEAD
-    <div id="variants">
-        @foreach($product->variants as $i => $variant)
-        <div class="variant-item border p-3 mb-2">
-            <input type="number" name="variants[{{ $i }}][price]" class="form-control mb-2" value="{{ $variant->price }}" placeholder="Giá biến thể">
-            <input type="number" name="variants[{{ $i }}][stock_quantity]" class="form-control mb-2" value="{{ $variant->stock_quantity }}" placeholder="Số lượng">
-
-            <select name="variants[{{ $i }}][attributes][color]" class="form-control mb-2">
-                <option value="">Chọn màu</option>
-                @foreach($attributes->where('name', 'Màu sắc')->first()->values ?? [] as $val)
-                    <option value="{{ $val->id }}" {{ $variant->attributes->pluck('attribute_value_id')->contains($val->id) ? 'selected' : '' }}>
-                        {{ $val->value }}
-                    </option>
-                @endforeach
-            </select>
-
-            <select name="variants[{{ $i }}][attributes][size]" class="form-control mb-2">
-                <option value="">Chọn kích cỡ</option>
-                @foreach($attributes->where('name', 'Kích cỡ')->first()->values ?? [] as $val)
-                    <option value="{{ $val->id }}" {{ $variant->attributes->pluck('attribute_value_id')->contains($val->id) ? 'selected' : '' }}>
-                        {{ $val->value }}
-                    </option>
-                @endforeach
-            </select>
-
-            <button type="button" class="btn btn-danger remove-variant">Xóa</button>
-=======
-
+    @php
+        // Chuẩn bị giá trị thuộc tính an toàn (không phụ thuộc hoa/ thường)
+        $colorsAttr = $attributes->first(function($a) { return mb_strtolower($a->name) === mb_strtolower('Màu sắc'); });
+        $colorValues = $colorsAttr ? $colorsAttr->values : collect();
+        $sizesAttr = $attributes->first(function($a) { return mb_strtolower($a->name) === mb_strtolower('Kích cỡ'); });
+        $sizeValues = $sizesAttr ? $sizesAttr->values : collect();
+    @endphp
     {{-- Nhập số biến thể mới muốn thêm --}}
     <div class="mb-3 d-flex align-items-center gap-2">
         <input type="number" id="variant-count" class="form-control" placeholder="Nhập số lượng biến thể muốn thêm" min="1" style="width:250px;">
@@ -114,6 +69,7 @@
         {{-- Biến thể hiện có --}}
         @foreach($product->variants as $i => $variant)
         <div class="variant-item border p-3 mb-2 rounded">
+            <input type="hidden" name="variants[{{ $i }}][id]" value="{{ $variant->id }}">
             <div class="d-flex justify-content-between align-items-center">
                 <h6 class="mb-0">Biến thể #{{ $i + 1 }}</h6>
                 <button type="button" class="btn btn-danger btn-sm remove-variant">Xóa</button>
@@ -131,7 +87,7 @@
                 <div class="col-md-3 mb-2">
                     <select name="variants[{{ $i }}][attributes][color]" class="form-control">
                         <option value="">Chọn màu</option>
-                        @foreach($attributes->where('name', 'Màu sắc')->first()->values ?? [] as $val)
+                        @foreach($colorValues as $val)
                             <option value="{{ $val->id }}" {{ $variant->attributes->pluck('attribute_value_id')->contains($val->id) ? 'selected' : '' }}>
                                 {{ $val->value }}
                             </option>
@@ -142,28 +98,29 @@
                 <div class="col-md-3 mb-2">
                     <select name="variants[{{ $i }}][attributes][size]" class="form-control">
                         <option value="">Chọn kích cỡ</option>
-                        @foreach($attributes->where('name', 'Kích cỡ')->first()->values ?? [] as $val)
+                        @foreach($sizeValues as $val)
                             <option value="{{ $val->id }}" {{ $variant->attributes->pluck('attribute_value_id')->contains($val->id) ? 'selected' : '' }}>
                                 {{ $val->value }}
                             </option>
                         @endforeach
                     </select>
                 </div>
+                
+                <div class="col-md-3 mb-2">
+                    <label class="form-label">Ảnh biến thể</label>
+                    <input type="file" name="variant_images[{{ $i }}][]" class="form-control" accept="image/*" multiple>
+                    @if($variant->images && $variant->images->count())
+                        <div class="mt-2 d-flex gap-2">
+                            @foreach($variant->images as $img)
+                                <img src="{{ asset('uploads/products/'.$img->link_images) }}" width="80" class="rounded border">
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
             </div>
->>>>>>> origin/tien
         </div>
         @endforeach
     </div>
-
-<<<<<<< HEAD
-    <button type="button" id="add-variant" class="btn btn-secondary mb-3">Thêm biến thể</button>
-    <button type="submit" class="btn btn-primary">Cập nhật sản phẩm</button>
-</form>
-
-<script>
-document.getElementById('add-variant').addEventListener('click', function() {
-    const index = document.querySelectorAll('.variant-item').length;
-=======
     <button type="submit" class="btn btn-primary mt-3">Cập nhật sản phẩm</button>
     <a href="{{ route('products.index') }}" class="btn btn-secondary mt-3">Hủy</a>
 </form>
@@ -178,50 +135,20 @@ document.getElementById('generate-variants').addEventListener('click', function(
         alert('Vui lòng nhập số lượng biến thể hợp lệ!');
         return;
     }
->>>>>>> origin/tien
 
     const colorOptions = `
         <option value="">Chọn màu</option>
-        @foreach($attributes->where('name', 'Màu sắc')->first()->values ?? [] as $val)
+        @foreach($colorValues as $val)
             <option value="{{ $val->id }}">{{ $val->value }}</option>
         @endforeach
     `;
     const sizeOptions = `
         <option value="">Chọn kích cỡ</option>
-        @foreach($attributes->where('name', 'Kích cỡ')->first()->values ?? [] as $val)
+        @foreach($sizeValues as $val)
             <option value="{{ $val->id }}">{{ $val->value }}</option>
         @endforeach
     `;
 
-<<<<<<< HEAD
-    const html = `
-        <div class="variant-item border p-3 mb-2">
-            <input type="number" name="variants[${index}][price]" class="form-control mb-2" placeholder="Giá biến thể">
-            <input type="number" name="variants[${index}][stock_quantity]" class="form-control mb-2" placeholder="Số lượng">
-
-            <select name="variants[${index}][attributes][color]" class="form-control mb-2">
-                ${colorOptions}
-            </select>
-
-            <select name="variants[${index}][attributes][size]" class="form-control mb-2">
-                ${sizeOptions}
-            </select>
-
-            <button type="button" class="btn btn-danger remove-variant">Xóa</button>
-        </div>
-    `;
-    document.getElementById('variants').insertAdjacentHTML('beforeend', html);
-});
-
-// Xóa biến thể
-document.addEventListener('click', function(e){
-    if(e.target.classList.contains('remove-variant')){
-        e.target.closest('.variant-item').remove();
-    }
-});
-</script>
-<a href="{{ route('products.index') }}" class="btn btn-secondary">Hủy</a>
-=======
     for (let i = 0; i < count; i++) {
         const index = currentCount + i;
         const html = `
@@ -333,9 +260,29 @@ document.querySelector('form').addEventListener('submit', function(e) {
         e.preventDefault();
     }
 });
+
+// Tự động cập nhật số lượng biến thể về 0 khi chọn trạng thái "Hết hàng"
+document.addEventListener('DOMContentLoaded', function() {
+    const statusSelect = document.querySelector('select[name="status"]');
+    if (statusSelect) {
+        statusSelect.addEventListener('change', function() {
+            if (this.value === '0') { // '0' là giá trị của "Hết hàng"
+                const confirmation = confirm('Bạn có muốn đặt số lượng của tất cả các biến thể về 0 không?');
+                if (confirmation) {
+                    document.querySelectorAll('input[name*="[stock_quantity]"]').forEach(input => {
+                        input.value = 0;
+                    });
+                } else {
+                    // Nếu người dùng hủy, trả lại lựa chọn "Còn hàng"
+                    this.value = '1';
+                }
+            }
+        });
+    }
+});
 </script>
 
 
 
->>>>>>> origin/tien
+
 @endsection

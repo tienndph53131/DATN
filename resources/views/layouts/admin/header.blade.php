@@ -1,17 +1,4 @@
-<<<<<<< HEAD
-<header class="header">
-    <h1 class="header-title">Overview</h1>
-    <div class="header-actions">
-        <select class="time-filter">
-            <option>Last 12 hours</option>
-            <option>Last 24 hours</option>
-            <option>Last 7 days</option>
-            <option>Last 30 days</option>
-        </select>
-       
-        <div class="user-avatar">AD</div>
-        
-=======
+
 <header class="bg-white shadow-sm p-3 mb-4 rounded d-flex justify-content-between align-items-center sticky-top">
     <div class="d-flex align-items-center">
         <span class="h4 mb-0 me-3">@yield('title', 'Dashboard')</span>
@@ -30,6 +17,5 @@
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item text-danger" href="{{ url('/logout') }}"><i class="fa-solid fa-right-from-bracket me-2"></i> Đăng xuất</a></li>
         </ul>
->>>>>>> origin/tien
     </div>
 </header>

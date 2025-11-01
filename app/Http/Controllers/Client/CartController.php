@@ -35,10 +35,21 @@ class CartController extends Controller
             return back()->with('error', 'Không tìm thấy biến thể sản phẩm.');
         }
 
+        // Kiểm tra số lượng tồn kho
+        if ($variant->stock_quantity < $quantity) {
+            return back()->with('error', 'Số lượng sản phẩm không đủ.');
+        }
+
         $cart = session()->get('cart', []);
 
+        // Kiểm tra nếu sản phẩm đã có trong giỏ
         if (isset($cart[$variantId])) {
-            $cart[$variantId]['quantity'] += $quantity;
+            $newQuantity = $cart[$variantId]['quantity'] + $quantity;
+            // Kiểm tra lại tổng số lượng trong giỏ và số lượng tồn kho
+            if ($variant->stock_quantity < $newQuantity) {
+                return back()->with('error', 'Số lượng sản phẩm trong giỏ hàng vượt quá số lượng tồn kho.');
+            }
+            $cart[$variantId]['quantity'] = $newQuantity;
         } else {
             $cart[$variantId] = [
                 'product_name' => $variant->product->name,
@@ -73,6 +84,15 @@ class CartController extends Controller
     {
         $variantId = $request->input('variant_id');
         $quantity = (int) $request->input('quantity');
+
+        $variant = ProductVariant::find($variantId);
+        if (!$variant) {
+            return back()->with('error', 'Sản phẩm không tồn tại.');
+        }
+
+        if ($variant->stock_quantity < $quantity) {
+            return back()->with('error', 'Số lượng cập nhật vượt quá số lượng tồn kho.');
+        }
 
         $cart = session()->get('cart', []);
 

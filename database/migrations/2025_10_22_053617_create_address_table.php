@@ -6,6 +6,10 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
     public function up(): void {
+        if (Schema::hasTable('address')) {
+            return;
+        }
+
         Schema::create('address', function (Blueprint $table) {
             $table->id();
             $table->foreignId('account_id')->constrained('accounts')->onDelete('cascade');

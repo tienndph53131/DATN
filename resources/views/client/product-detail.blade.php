@@ -1,5 +1,33 @@
 @extends('layouts.partials.client')
 
+@php
+if (!function_exists('colorToCss')) {
+    /**
+     * Chuyển đổi tên màu tiếng Việt sang mã màu CSS.
+     * @param string $colorName Tên màu (VD: "Đỏ", "Xanh lá", "Trắng")
+     * @return string Mã màu CSS (VD: "red", "green", "white") hoặc trả về chính nó nếu không tìm thấy.
+     */
+    function colorToCss($colorName) {
+        $colorNameLower = mb_strtolower(trim($colorName));
+        $map = [
+            'đỏ' => 'red',
+            'xanh dương' => 'blue',
+            'xanh lam' => 'blue',
+            'xanh lá' => 'green',
+            'vàng' => 'yellow',
+            'đen' => 'black',
+            'trắng' => 'white',
+            'hồng' => 'pink',
+            'tím' => 'purple',
+            'cam' => 'orange',
+            'nâu' => 'brown',
+            'xám' => 'gray',
+        ];
+        return $map[$colorNameLower] ?? $colorName;
+    }
+}
+@endphp
+
 @section('title', $product->name)
 
 @section('content')
@@ -7,7 +35,7 @@
     <div class="row">
         <!-- Ảnh sản phẩm -->
         <div class="col-md-5 text-center">
-            <img src="{{ asset('uploads/products/' . $product->image) }}" 
+            <img id="main-product-image" src="{{ $product->image ? asset('uploads/products/' . $product->image) : '' }}" 
                  class="img-fluid rounded shadow-sm" 
                  alt="{{ $product->name }}">
         </div>
@@ -30,36 +58,12 @@
             @endphp
             <div class="d-flex align-items-center mb-3">
                 <h2 id="variant-price" class="text-danger fw-bold me-3 mb-0">
-                    {{ $defaultVariant ? number_format($defaultVariant->price, 0, ',', '.') . '₫' : 'Liên hệ' }}
+                    {{ $defaultVariant ? number_format($defaultVariant->price, 0, ',', '.') . '₫' : ( $product->price ? number_format($product->price,0,',','.').'₫' : 'Liên hệ' ) }}
                 </h2>
             </div>
 
             <!-- Chọn màu sắc -->
             @if($colors->count())
-            @php
-                function colorToCss($value){
-                    $map = [
-                        'trắng'=>'white',
-                        'đen'=>'black',
-                        'vàng'=>'yellow',
-                        'hồng'=>'pink',
-                        'xanh'=>'blue',
-                        'xanh lá'=>'green',
-                         'đỏ'      => 'red',
-                         'xám'     => 'gray',
-                         'nâu'     => '#8B4513',
-                        'tím'     => 'purple',
-                    ];
-                    $value = trim(strtolower($value));
-                    if(str_starts_with($value, '#')){
-                        return $value;
-                    } elseif(isset($map[$value])){
-                        return $map[$value];
-                    } else {
-                        return $value;
-                    }
-                }
-            @endphp
             <div class="mb-3">
                 <label class="fw-bold d-block mb-2">Màu sắc:</label>
                 <div class="d-flex align-items-center">
@@ -67,7 +71,8 @@
                         <button type="button"
                                 class="btn border rounded-circle p-3 me-2 color-option"
                                 style="background-color: {{ colorToCss($color->value) }};"
-                                data-attr="Màu sắc"
+                                data-attr-slug="{{ Illuminate\Support\Str::slug('Màu sắc','-') }}"
+                                data-value-id="{{ $color->id }}"
                                 data-value="{{ $color->value }}"
                                 title="{{ $color->value }}"></button>
                     @endforeach
@@ -84,7 +89,8 @@
                     @foreach($sizes as $size)
                         <button type="button"
                                 class="btn btn-outline-secondary me-2 mb-2 size-option"
-                                data-attr="Kích cỡ"
+                                data-attr-slug="{{ Illuminate\Support\Str::slug('Kích cỡ','-') }}"
+                                data-value-id="{{ $size->id }}"
                                 data-value="{{ $size->value }}">
                             {{ $size->value }}
                         </button>
@@ -110,7 +116,7 @@
                     <input type="hidden" name="variant_id" id="variant-id">
                     <input type="hidden" name="quantity" id="input-quantity" value="1">
 
-                    <button type="submit" class="btn btn-danger px-4 py-2 fw-bold">
+                    <button type="submit" id="add-to-cart-btn" class="btn btn-danger px-4 py-2 fw-bold" disabled>
                         <i class="fa fa-shopping-cart me-2"></i>THÊM VÀO GIỎ
                     </button>
                 </form>
@@ -166,41 +172,185 @@
 <script>
 const variantData = @json($variantData);
 let selected = {};
+// Use static slugs to avoid Blade parsing issues
+const COLOR_SLUG = 'mau-sac';
+const SIZE_SLUG = 'kich-co';
 
-// Chọn màu hoặc kích thước
-document.querySelectorAll('.color-option, .size-option').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const attr = this.dataset.attr;
-        const value = this.dataset.value;
-        selected[attr] = value;
+const priceEl = document.getElementById('variant-price');
+const variantIdInput = document.getElementById('variant-id');
+const addToCartBtn = document.getElementById('add-to-cart-btn');
 
-        // Remove active
-        document.querySelectorAll(`[data-attr="${attr}"]`).forEach(b => b.classList.remove('active', 'border-primary'));
-        this.classList.add('active', 'border-primary');
+function normalize(v) {
+    return (v || '').toString().trim().toLowerCase();
+}
 
-        // Chỉ hiển thị tên màu khi chọn
-        if(attr === 'Màu sắc'){
-            document.getElementById('selected-color').textContent = value;
-        }
+function updateUIForVariant(variant) {
+    if (!variant) return;
+    // price
+    priceEl.textContent = new Intl.NumberFormat('vi-VN').format(variant.price) + '₫';
+    // variant id
+    variantIdInput.value = variant.id || '';
+    // image
+    if (variant.image) {
+        const imgEl = document.getElementById('main-product-image');
+        imgEl.src = variant.image;
+    }
+    // set selected color text if exists (use attributes_text map keyed by slug)
+    if (variant.attributes_text && variant.attributes_text[COLOR_SLUG]) {
+        document.getElementById('selected-color').textContent = variant.attributes_text[COLOR_SLUG];
+    }
+    // mark active buttons for color and size
+    document.querySelectorAll('.color-option, .size-option').forEach(b => b.classList.remove('active', 'border-primary'));
+    if (variant.attributes) {
+        Object.entries(variant.attributes).forEach(([slug, val]) => {
+            const buttons = document.querySelectorAll(`[data-attr-slug="${slug}"]`);
+            buttons.forEach(b => {
+                // compare by attribute_value id (data-value-id)
+                if (b.dataset.valueId && b.dataset.valueId.toString() === val.toString()) {
+                    b.classList.add('active', 'border-primary');
+                    selected[slug] = val.toString();
+                }
+            });
+        });
+    }
+}
 
-        // Cập nhật giá và variant_id dựa trên cả màu và kích thước
-        const variant = variantData.find(v =>
-            Object.entries(selected).every(([a, val]) => v.attributes[a] === val)
+function findVariantByAttributes(attrs) {
+    const selectedCount = Object.keys(attrs).length;
+    if (selectedCount === 0) return null;
+
+    return variantData.find(v => {
+        if (!v.attributes) return false;
+        const variantAttrCount = Object.keys(v.attributes).length;
+        // Phải khớp số lượng thuộc tính
+        if (variantAttrCount !== selectedCount) return false;
+        // Tất cả thuộc tính được chọn phải khớp với biến thể
+        return Object.entries(attrs).every(([slug, val]) =>
+            v.attributes[slug] && v.attributes[slug].toString() === val.toString()
         );
-
-        if (variant) {
-            document.getElementById('variant-price').textContent = 
-                new Intl.NumberFormat('vi-VN').format(variant.price) + '₫';
-            document.getElementById('variant-id').value = variant.id;
-        }
     });
-});
+}
 
-// Tăng giảm số lượng
-const qty = document.getElementById('quantity');
-document.getElementById('increase').onclick = () => qty.value = parseInt(qty.value) + 1;
-document.getElementById('decrease').onclick = () => qty.value = Math.max(1, parseInt(qty.value) - 1);
-qty.addEventListener('input', () => document.getElementById('input-quantity').value = qty.value);
+function updateAvailableOptions() {
+    // Lấy tất cả các nút tùy chọn
+    const colorOptions = document.querySelectorAll('.color-option');
+    const sizeOptions = document.querySelectorAll('.size-option');
+    const hasColor = document.querySelectorAll('.color-option').length > 0;
+    const hasSize = document.querySelectorAll('.size-option').length > 0;
+    const totalAttrs = (hasColor ? 1 : 0) + (hasSize ? 1 : 0);
+
+    // Reset tất cả các tùy chọn về trạng thái ban đầu (enabled)
+    colorOptions.forEach(opt => { opt.disabled = false; opt.classList.remove('disabled'); });
+    sizeOptions.forEach(opt => { opt.disabled = false; opt.classList.remove('disabled'); });
+
+    // Hàm trợ giúp để kiểm tra và disable/enable các tùy chọn
+    const checkAndSetOptions = (optionsToCheck, otherAttributeSlug) => {
+        optionsToCheck.forEach(option => {
+            const currentAttrSlug = option.dataset.attrSlug;
+            const currentAttrValueId = option.dataset.valueId; 
+
+            // Tạo một lựa chọn tiềm năng
+            const potentialSelection = { ...selected };
+            potentialSelection[currentAttrSlug] = currentAttrValueId;
+
+            const variant = findVariantByAttributes(potentialSelection);
+
+            // Vô hiệu hóa nếu không tìm thấy biến thể HOẶC biến thể đã hết hàng
+            if (!variant || variant.stock_quantity === 0) {
+                option.disabled = true;
+                option.classList.add('disabled'); // Thêm class để làm mờ
+            } else {
+                option.disabled = false;
+                option.classList.remove('disabled');
+            }
+        });
+    };
+
+    // Logic chính: Dựa trên những gì đã được chọn, kiểm tra các tùy chọn còn lại
+    // 1. Nếu đã chọn MÀU, kiểm tra các KÍCH CỠ có sẵn
+    if (selected[COLOR_SLUG]) {
+        checkAndSetOptions(sizeOptions, COLOR_SLUG);
+    }
+    // 2. Nếu đã chọn KÍCH CỠ, kiểm tra các MÀU SẮC có sẵn
+    if (selected[SIZE_SLUG]) {
+        checkAndSetOptions(colorOptions, SIZE_SLUG); 
+    }
+
+    // Cập nhật nút "Thêm vào giỏ" và giá khi đã chọn đủ
+    if (Object.keys(selected).length === totalAttrs) {
+        const finalVariant = findVariantByAttributes(selected);
+        if (finalVariant) {
+            if (finalVariant.stock_quantity > 0) {
+                addToCartBtn.disabled = false;
+                addToCartBtn.textContent = 'THÊM VÀO GIỎ';
+            } else {
+                addToCartBtn.disabled = true;
+                addToCartBtn.textContent = 'HẾT HÀNG';
+            }
+            updateUIForVariant(finalVariant); // Cập nhật giá, ảnh...
+        } else {
+            addToCartBtn.disabled = true;
+            // Trường hợp không tìm thấy tổ hợp (dữ liệu lỗi)
+            priceEl.textContent = 'Tổ hợp không có sẵn';
+        }
+    } else {
+        // Nếu chưa chọn đủ, vô hiệu hóa nút
+        addToCartBtn.disabled = true;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Init: set first variant as default and mark buttons
+    const initialVariant = variantData[0] || null;
+    if (initialVariant) {
+        updateUIForVariant(initialVariant);
+        // Kích hoạt nút nếu biến thể đầu tiên còn hàng
+        if (initialVariant.stock_quantity > 0) {
+            addToCartBtn.disabled = false;
+        } else {
+            addToCartBtn.textContent = 'HẾT HÀNG';
+        }
+    } else {
+        // Nếu không có biến thể nào, disable nút ngay từ đầu
+        addToCartBtn.disabled = true;
+        addToCartBtn.textContent = 'HẾT HÀNG';
+    }
+
+    // Chọn màu hoặc kích thước
+    document.querySelectorAll('.color-option, .size-option').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const slug = this.dataset.attrSlug;
+            const valueId = this.dataset.valueId;
+
+            // Nếu nút đã active, tức là người dùng đang bỏ chọn
+            if (this.classList.contains('active')) {
+                this.classList.remove('active', 'border-primary');
+                delete selected[slug];
+            } else {
+                // Cập nhật lựa chọn mới và giao diện nút
+                document.querySelectorAll(`[data-attr-slug="${slug}"]`).forEach(b => b.classList.remove('active', 'border-primary'));
+                this.classList.add('active', 'border-primary');
+                selected[slug] = valueId;
+            }
+
+            // Cập nhật text màu sắc
+            if (slug === COLOR_SLUG && selected[slug]) {
+                document.getElementById('selected-color').textContent = this.dataset.value;
+            } else if (slug === COLOR_SLUG && !selected[slug]) {
+                document.getElementById('selected-color').textContent = '';
+            }
+
+            updateAvailableOptions();
+        });
+    });
+
+    // Tăng giảm số lượng
+    const qtyInput = document.getElementById('quantity');
+    const formQtyInput = document.getElementById('input-quantity');
+    document.getElementById('increase').onclick = () => { qtyInput.value = parseInt(qtyInput.value) + 1; formQtyInput.value = qtyInput.value; };
+    document.getElementById('decrease').onclick = () => { qtyInput.value = Math.max(1, parseInt(qtyInput.value) - 1); formQtyInput.value = qtyInput.value; };
+    qtyInput.addEventListener('input', () => formQtyInput.value = qtyInput.value);
+});
 </script>
 
 <style>
@@ -209,6 +359,11 @@ qty.addEventListener('input', () => document.getElementById('input-quantity').va
 .color-option.active {
     border: 2px solid #dc3545 !important;
     box-shadow: 0 0 5px rgba(220, 53, 69, 0.5);
+}
+
+.color-option.disabled, .size-option.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
 .color-option {
