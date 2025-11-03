@@ -4,6 +4,9 @@
 
 @section('content')
 <div class="container py-5">
+    @if (session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
     <div class="row">
         <!-- Ảnh sản phẩm -->
         <div class="col-md-5 text-center">
@@ -16,12 +19,12 @@
         <div class="col-md-7">
             <h3 class="fw-bold mb-2">{{ $product->name }}</h3>
             <p class="text-muted mb-1">
-                Trạng thái: 
+                {{-- Trạng thái: 
                 @if($product->status == 1)
                     <span class="text-success">Còn hàng</span>
                 @else
                     <span class="text-danger">Hết hàng</span>
-                @endif
+                @endif --}}
             </p>
 
             <!-- Giá sản phẩm -->
@@ -43,7 +46,7 @@
                         'đen'=>'black',
                         'vàng'=>'yellow',
                         'hồng'=>'pink',
-                        'xanh'=>'blue',
+                        'xanh dương'=>'blue',
                         'xanh lá'=>'green',
                          'đỏ'      => 'red',
                          'xám'     => 'gray',
@@ -129,37 +132,44 @@
     </div>
 
     <!-- Sản phẩm liên quan -->
-    @if($relatedProducts->count())
-    <div class="mt-5">
-        <h4 class="mb-4 fw-bold">Sản phẩm liên quan</h4>
-        <div class="row">
-            @foreach($relatedProducts as $item)
-                <div class="col-md-3 mb-4">
-                    <div class="card border-0 shadow-sm h-100">
-                        <img src="{{ asset('uploads/products/' . $item->image) }}" 
-                             class="card-img-top" 
-                             alt="{{ $item->name }}">
-                        <div class="card-body text-center">
-                            <h6 class="fw-bold">{{ $item->name }}</h6>
-                            @php $itemPrice = $item->variants->min('price'); @endphp
-                            @if($itemPrice)
-                                <p class="text-danger fw-bold mb-2">
-                                    {{ number_format($itemPrice, 0, ',', '.') }}₫
-                                </p>
-                            @else
-                                <p class="text-muted mb-2">Liên hệ</p>
-                            @endif
-                            <a href="{{ route('product.show', $item->id) }}" 
-                               class="btn btn-outline-primary btn-sm">
-                                Xem chi tiết
-                            </a>
-                        </div>
+@if($relatedProducts->count())
+<div class="mt-5">
+    <h4 class="mb-4 fw-bold">Sản phẩm liên quan</h4>
+    <div class="row">
+        @foreach($relatedProducts as $item)
+            @php
+                // Lấy biến thể đầu tiên làm mặc định
+                $defaultVariant = $item->variants->first();
+            @endphp
+
+            <div class="col-md-3 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <img src="{{ asset('uploads/products/' . $item->image) }}" 
+                         class="card-img-top" 
+                         alt="{{ $item->name }}">
+                    <div class="card-body text-center">
+                        <h6 class="fw-bold">{{ $item->name }}</h6>
+
+                        @if($defaultVariant && $defaultVariant->price)
+                            <p class="text-danger fw-bold mb-2">
+                                {{ number_format($defaultVariant->price, 0, ',', '.') }}₫
+                            </p>
+                        @else
+                            <p class="text-muted mb-2">Liên hệ</p>
+                        @endif
+
+                        <a href="{{ route('product.show', $item->id) }}" 
+                           class="btn btn-outline-primary btn-sm">
+                            Xem chi tiết
+                        </a>
                     </div>
                 </div>
-            @endforeach
-        </div>
+            </div>
+        @endforeach
     </div>
-    @endif
+</div>
+@endif
+
 </div>
 
 <!-- Script -->
@@ -197,10 +207,31 @@ document.querySelectorAll('.color-option, .size-option').forEach(btn => {
 });
 
 // Tăng giảm số lượng
+
 const qty = document.getElementById('quantity');
-document.getElementById('increase').onclick = () => qty.value = parseInt(qty.value) + 1;
-document.getElementById('decrease').onclick = () => qty.value = Math.max(1, parseInt(qty.value) - 1);
-qty.addEventListener('input', () => document.getElementById('input-quantity').value = qty.value);
+const hiddenQty = document.getElementById('input-quantity');
+
+// khi tăng giảm
+document.getElementById('increase').addEventListener('click', () => {
+    qty.value = parseInt(qty.value) + 1;
+    hiddenQty.value = qty.value;
+});
+
+document.getElementById('decrease').addEventListener('click', () => {
+    qty.value = Math.max(1, parseInt(qty.value) - 1);
+    hiddenQty.value = qty.value;
+});
+
+// khi nhập tay vào input
+qty.addEventListener('input', () => {
+    if (qty.value < 1 || isNaN(qty.value)) qty.value = 1;
+    hiddenQty.value = qty.value;
+});
+
+// Đảm bảo đồng bộ trước khi submit form
+document.getElementById('buyForm').addEventListener('submit', () => {
+    hiddenQty.value = qty.value;
+});
 </script>
 
 <style>
@@ -210,11 +241,120 @@ qty.addEventListener('input', () => document.getElementById('input-quantity').va
     border: 2px solid #dc3545 !important;
     box-shadow: 0 0 5px rgba(220, 53, 69, 0.5);
 }
+* Nút chọn kích thước (size) */
+.size-option {
+    font-weight: 600; /* chữ rõ hơn */
+    border: 2px solid #aaa; /* viền rõ hơn */
+    color: #333; /* chữ đậm hơn */
+    background-color: #fff;
+    transition: all 0.2s ease;
+}
+.size-option:hover {
+    border-color: #dc3545;
+    color: #dc3545;
+    font-weight: 700; /* đậm hơn khi hover */
+}
+.size-option.active {
+    border: 2px solid #dc3545 !important;
+    font-weight: 700;
+    color: #dc3545;
+    box-shadow: 0 0 6px rgba(220, 53, 69, 0.5);
+}
 
+/* Nút chọn màu (color) */
 .color-option {
     width: 35px;
     height: 35px;
     padding: 0 !important;
+    border: 2px solid #aaa;
+    transition: all 0.2s ease;
 }
+.color-option:hover {
+    transform: scale(1.1);
+    border-color: #dc3545;
+}
+.color-option.active {
+    border: 2px solid #dc3545 !important;
+    box-shadow: 0 0 6px rgba(220, 53, 69, 0.5);
+}
+
+/* Nút tăng giảm số lượng */
+#increase, #decrease {
+    font-weight: 700;
+    font-size: 18px;
+    color: #333;
+    border: 2px solid #aaa;
+}
+#increase:hover, #decrease:hover {
+    background-color: #f8f9fa;
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+/* Input số lượng */
+#quantity {
+    font-weight: 600;
+    color: #333;
+    border: 2px solid #aaa;
+}
+
+/* Nút "Thêm vào giỏ" */
+#buyForm button {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    transition: 0.2s ease;
+}
+#buyForm button:hover {
+    background-color: #c82333;
+}
+
+.btn-outline-primary.btn-sm:hover {
+    background-color: #0d6efd;
+    color: #fff;
+    font-weight: 700;
+    
+}
+.size-option {
+    color: #000 !important;               
+    border-color: #000 !important;        
+    background-color: #fff !important;    
+    opacity: 1 !important;                
+    font-weight: 600;                     
+    transition: all 0.2s ease-in-out;
+}
+
+/* Khi hover chuột */
+.size-option:hover {
+    color: #fff !important;
+    background-color: #000 !important;
+    border-color: #000 !important;
+}
+
+/* Khi được chọn */
+.size-option.active {
+    color: #fff !important;
+    background-color: #dc3545 !important; /* Đỏ nổi bật */
+    border-color: #dc3545 !important;
+}
+.color-option {
+    border: 2px solid #ccc !important; /* viền dày hơn */
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.3); /* hiệu ứng đổ bóng nhẹ */
+    transition: all 0.2s ease-in-out;
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+    border-color: #000; /* viền đậm khi hover */
+}
+
+.color-option.active {
+    border: 3px solid #000 !important; /* khi được chọn thì viền đậm rõ */
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+}
+
 </style>
 @endsection
