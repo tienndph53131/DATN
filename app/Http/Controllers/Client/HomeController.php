@@ -69,14 +69,35 @@ class HomeController extends Controller
             ? $colorAttribute->values()->whereIn('id', $attrValueIds)->get()
             : collect();
 
+        // Map color values to CSS safe strings to avoid declaring functions in views
+        $colors = $colors->map(function ($c) {
+            return (object) [
+                'value' => $c->value,
+                'css' => $this->colorToCss($c->value),
+            ];
+        });
+
         // Tạo dữ liệu JSON cho view JS
         $variantData = $product->variants->map(function ($v) {
             return [
                 'id' => $v->id,
                 'price' => $v->price,
+                'stock_quantity' => $v->stock_quantity ?? 0,
+                'available' => ($v->stock_quantity ?? 0) > 0,
                 'attributes' => $v->attributeValues->pluck('value', 'attribute.name')->toArray()
             ];
         });
+
+        // Lấy bình luận đã duyệt để hiển thị
+        $comments = $product->comments()->where('status', 1)->with('account')->orderByDesc('date')->get();
+
+        // Rating aggregates
+        $avgRating = $comments->count() ? round($comments->avg('rating'), 1) : 0;
+        $totalReviews = $comments->count();
+        $ratingCounts = [];
+        for ($i = 5; $i >= 1; $i--) {
+            $ratingCounts[$i] = $comments->where('rating', $i)->count();
+        }
 
         return view('client.product-detail', compact(
             'categories',
@@ -84,7 +105,33 @@ class HomeController extends Controller
             'relatedProducts',
             'sizes',
             'colors',
-            'variantData'
+            'variantData',
+            'comments',
+            'avgRating',
+            'totalReviews',
+            'ratingCounts'
         ));
+    }
+
+    // Helper: map color value to CSS color. Kept private to avoid global redeclare issues in views.
+    private function colorToCss(?string $value): string
+    {
+        $map = [
+            'trắng' => 'white',
+            'đen' => 'black',
+            'vàng' => 'yellow',
+            'hồng' => 'pink',
+            'xanh dương' => 'blue',
+            'xanh lá' => 'green',
+            'đỏ' => 'red',
+            'xám' => 'gray',
+            'nâu' => '#8B4513',
+            'tím' => 'purple',
+        ];
+
+        if (!$value) return '';
+        $v = trim(mb_strtolower($value));
+        if (str_starts_with($v, '#')) return $value;
+        return $map[$v] ?? $value;
     }
 }
