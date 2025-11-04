@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('cart_id');
             $table->unsignedBigInteger('product_id');
+              $table->unsignedBigInteger('product_variant_id');
             $table->integer('quantity')->default(1);
             $table->decimal('price', 10, 2);
             $table->decimal('amount', 10, 2);
@@ -20,6 +21,7 @@ return new class extends Migration
            
             $table->foreign('cart_id')->references('id')->on('carts')->onDelete('cascade');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            $table->foreign('product_variant_id')->references('id')->on('product_variants')->onDelete('cascade');
         });
     }
 

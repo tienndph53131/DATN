@@ -39,38 +39,40 @@
             </form>
         </div>
 
-        <!-- 🛒 GIỎ HÀNG -->
-        <div class="col-lg-3 col-6 text-right">
-            <!-- Yêu thích -->
-            <a href="#" class="btn border position-relative mr-2">
-                <i class="fas fa-heart text-primary"></i>
-                <span class="badge position-absolute top-0 start-100 translate-middle bg-danger text-white rounded-pill">0</span>
-            </a>
+       <!-- 🛒 GIỎ HÀNG -->
+@if(Auth::guard('client')->check())
+    @php
+        $user = Auth::guard('client')->user();
+        // Lấy giỏ hàng hoặc tạo mới
+        $cart = $user->cart ?? \App\Models\Cart::firstOrCreate(['account_id' => $user->id]);
+        $cartItems = $cart->details()->with('productVariant.product')->get();
 
-            <!-- Giỏ hàng -->
-            @php
-                $cart = session('cart', []);
-                $cartCount = count($cart);
-                $cartTotal = 0;
-                foreach ($cart as $item) {
-                    $cartTotal += $item['price'] * $item['quantity'];
-                }
-            @endphp
+        $cartCount = $cartItems->count(); 
+        $cartTotal = $cartItems->sum('amount');
+    @endphp
 
-            <a href="{{ route('cart.index') }}" class="btn border position-relative me-2">
-                <i class="fas fa-shopping-cart text-primary"></i>
-                <span class="badge position-absolute top-0 start-100 translate-middle bg-danger text-white rounded-pill">
-                    {{ $cartCount }}
-                </span>
-            </a>
+    <div class="col-lg-3 col-6 text-right">
+        <!-- Yêu thích -->
+        <a href="#" class="btn border position-relative me-2">
+            <i class="fas fa-heart text-primary"></i>
+            <span class="badge position-absolute top-0 start-100 translate-middle bg-danger text-white rounded-pill">0</span>
+        </a>
 
-            <!-- Hiển thị tổng tiền -->
-            <span class="fw-bold text-dark small">
-                🛒 {{ $cartCount }} SP - {{ number_format($cartTotal, 0, ',', '.') }}₫
+        <!-- Giỏ hàng -->
+        <a href="{{ route('cart.index') }}" class="btn border position-relative me-2">
+            <i class="fas fa-shopping-cart text-primary"></i>
+            <span class="badge position-absolute top-0 start-100 translate-middle bg-danger text-white rounded-pill">
+                {{ $cartCount }}
             </span>
-        </div>
+        </a>
+
+        <!-- Hiển thị tổng tiền -->
+        <span class="fw-bold text-dark small">
+            🛒 {{ $cartCount }} SP - {{ number_format($cartTotal, 0, ',', '.') }}₫
+        </span>
     </div>
-</div>
+@endif
+
 <!-- 🌟 Topbar End -->
 
 
@@ -126,9 +128,32 @@
                     </div>
 
                     <div class="navbar-nav ml-auto py-0">
-                        <a href="/login" class="nav-item nav-link">Đăng nhập</a>
-                        <a href="/register" class="nav-item nav-link">Đăng ký</a>
-                    </div>
+    {{-- Nếu đã đăng nhập --}}
+@if(Auth::guard('client')->check())
+    <li class="nav-item">
+         <a href="{{ route('profile.edit') }}" class="nav-link">
+       👤 {{ Auth::guard('client')->user()->name }}
+    </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link text-danger" href="#" 
+           onclick="event.preventDefault(); document.getElementById('client-logout-form').submit();">
+           Đăng xuất
+        </a>
+        <form id="client-logout-form" action="{{ route('client.logout') }}" method="POST" class="d-none">
+            @csrf
+        </form>
+    </li>
+@else
+    <li class="nav-item">
+        <a class="nav-link" href="{{ route('client.login') }}">Đăng nhập</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{ route('client.register') }}">Đăng ký</a>
+    </li>
+@endif
+
+
                 </div>
             </nav>
         </div>

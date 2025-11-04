@@ -30,6 +30,7 @@
         {{-- Nhập giá trị --}}
         <div class="mb-3">
             <label for="value" class="form-label">Giá trị</label>
+            
             <input type="text" name="value" id="value"
                    class="form-control @error('value') is-invalid @enderror"
                    value="{{ old('value') }}">

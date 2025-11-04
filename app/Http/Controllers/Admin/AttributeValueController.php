@@ -28,15 +28,30 @@ class AttributeValueController extends Controller
     {
         $request->validate([
             'attribute_id' => 'required|exists:attributes,id',
-            'value' => 'required|string|max:255',
-        ]
-        , [
-    'attribute_id.required' => 'Vui lòng chọn thuộc tính!',
-    'attribute_id.exists' => 'Thuộc tính được chọn không hợp lệ!',
-    'value.required' => 'Vui lòng nhập giá trị thuộc tính!',
-    'value.max' => 'Giá trị thuộc tính không được vượt quá 255 ký tự!',
-]);
+            'value' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($request) {
+                    // Kiểm tra trùng lặp giá trị trong cùng thuộc tính (không phân biệt hoa thường)
+                    $exists = AttributeValue::where('attribute_id', $request->attribute_id)
+                        ->whereRaw('LOWER(value) = ?', [strtolower($value)])
+                        ->exists();
+
+                    if ($exists) {
+                        $fail('Giá trị "' . $value . '" đã tồn tại cho thuộc tính này!');
+                    }
+                },
+            ],
+        ], [
+            'attribute_id.required' => 'Vui lòng chọn thuộc tính!',
+            'attribute_id.exists' => 'Thuộc tính được chọn không hợp lệ!',
+            'value.required' => 'Vui lòng nhập giá trị thuộc tính!',
+            'value.max' => 'Giá trị thuộc tính không được vượt quá 255 ký tự!',
+        ]);
+
         AttributeValue::create($request->all());
+
         return redirect()->route('attribute_values.index')->with('success', 'Thêm giá trị thành công!');
     }
 
@@ -53,14 +68,28 @@ class AttributeValueController extends Controller
     {
         $request->validate([
             'attribute_id' => 'required|exists:attributes,id',
-            'value' => 'required|string|max:255',
-        ]
-    ,[
-    'attribute_id.required' => 'Vui lòng chọn thuộc tính!',
-    'attribute_id.exists' => 'Thuộc tính được chọn không hợp lệ!',
-    'value.required' => 'Vui lòng nhập giá trị thuộc tính!',
-    'value.max' => 'Giá trị thuộc tính không được vượt quá 255 ký tự!',
-]);
+            'value' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($request, $id) {
+                    // Kiểm tra trùng lặp trừ chính bản ghi hiện tại
+                    $exists = AttributeValue::where('attribute_id', $request->attribute_id)
+                        ->whereRaw('LOWER(value) = ?', [strtolower($value)])
+                        ->where('id', '!=', $id)
+                        ->exists();
+
+                    if ($exists) {
+                        $fail('Giá trị "' . $value . '" đã tồn tại cho thuộc tính này!');
+                    }
+                },
+            ],
+        ], [
+            'attribute_id.required' => 'Vui lòng chọn thuộc tính!',
+            'attribute_id.exists' => 'Thuộc tính được chọn không hợp lệ!',
+            'value.required' => 'Vui lòng nhập giá trị thuộc tính!',
+            'value.max' => 'Giá trị thuộc tính không được vượt quá 255 ký tự!',
+        ]);
 
         $value = AttributeValue::findOrFail($id);
         $value->update($request->all());
