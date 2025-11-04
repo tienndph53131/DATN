@@ -9,7 +9,6 @@ use App\Models\ProductVariant;
 
 class CartController extends Controller
 {
-
     // Trang xem giỏ hàng
     public function index()
     {
