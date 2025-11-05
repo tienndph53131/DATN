@@ -45,51 +45,9 @@ class CheckoutController extends Controller
         if (!$cart) {
             return redirect()->route('cart.index')->with('error', 'Giỏ hàng trống không thể thanh toán');
         }
-        $cartDetails = $cart
-            ->details()
-            ->with('productVariant.product')
-            ->get();
-        if ($cartDetails->isEmpty()) {
-            return back()->with('error', 'Giỏ hàng trống không thể thanh toán');
-        }
+        $cartDetails = $cart->details()->with('productVariant.product')->get();
         $total = $cartDetails->sum('amount');
-        if ($request->payment_id == 2) {
-
-            DB::beginTransaction();
-            try {
-                $total = $cart->details->sum('amount');
-
-                $order = Order::create([
-                    'order_code' => 'DH' . time(),
-                    'account_id' => $request->id,
-                    'name' => $request->name,
-                    'email' => $request->email,
-                    'phone' => $request->phone,
-                    'address_id' => $request->address_id,
-                    'booking_date' => Carbon::now(),
-                    'total' => $total,
-                    'payment_id' => 2,
-                    'status_id' => 1, // chua thanh toán
-                ]);
-                foreach ($cart->details as $item) {
-                    DB::table('order_details')->insert([
-                        'order_id' => $order->id,
-                        'product_variant_id' => $item->product_variant_id,
-                        'product_id' => $item->ProductVariant->product_id,
-                        'quantity' => $item->quantity,
-                        'price' => $item->price,
-                        'amount' => $item->amount,
-                    ]);
-                }
-
-                DB::commit();
-                return $this->momopayment($request);
-            } catch (\Exception $e) {
-                DB::rollBack();
-                return back()->with('error', 'Đã có lỗi xảy ra trong quá trình thanh toán: ' . $e->getMessage());
-            }
-        }
-
+        // Tạo đơn hàng
         DB::beginTransaction();
         try {
             $order = Order::create([
@@ -115,16 +73,17 @@ class CheckoutController extends Controller
                     'amount' => $item->amount,
                 ]);
             }
-            $cartModel = Cart::where('account_id', auth()->id())->first();
-            if (!$cartModel) {
-                return back()->with('error', 'Giỏ hàng trống không thể thanh toán');
+            if ($request->payment_id == 1) {
+                $cart->details()->delete();
+                $cart->delete();  // Xóa giỏ hàng sau khi đặt hàng thành công
+                DB::commit();
+                return redirect()->route('order.success')->with('success', 'Đặt hàng thành công');
             }
-            if ($cartModel) {
-                $cartModel->details()->delete();
-                $cartModel->delete();
+
+            if ($request->payment_id == 2) {
+                DB::commit();
+                return $this->momopayment($order);
             }
-            DB::commit();
-            return redirect()->route('order.success')->with('success', 'Đặt hàng thành công');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Đã có lỗi xảy ra trong quá trình thanh toán: ' . $e->getMessage());
@@ -153,7 +112,7 @@ class CheckoutController extends Controller
         curl_close($ch);
         return $result;
     }
-    public function momopayment(Request $request)
+    public function momopayment($order)
     {
 
         $endpoint = "https://test-payment.momo.vn/v2/gateway/api/create";
@@ -167,11 +126,11 @@ class CheckoutController extends Controller
         $requestId = time() . "";
         $requestType = "payWithATM";
 
-        $amount = $request->input('total_momo');
+        $amount = $order->total;
         if ($amount < 10000) {
             $amount = 10000;
         }
-        $orderId = time();
+        $orderId = $order->order_code;
         $redirectUrl = route('momo.return');
         $ipnUrl = route('momo.ipn');
         $extraData = "";
@@ -250,61 +209,21 @@ class CheckoutController extends Controller
     //     }
     // }
 
-    // public function momoReturn(Request $request)
-    // {
-    //     if ($request->resultCode != 0) {
-    //         return redirect()->route('cart.index')->with('error', 'Thanh toán thất bại');
-    //     }
-
-    //     $user = auth()->user();
-    //     if (!$user) {
-    //         return redirect()->route('cart.index')->with('error', 'Vui lòng đăng nhập trước khi thanh toán.');
-    //     }
-    //     $address = $user->defaultAddress ?? $user->addresses->first();
-    //     if (!$address) {
-    //         return redirect()->route('cart.index')->with('error', 'Vui lòng thêm địa chỉ trước khi thanh toán');
-    //     }
-    //     $cart = Cart::where('account_id', $user->id)->first();
-
-    //     if (!$cart || $cart->details()->count() == 0) {
-    //         return redirect()->route('cart.index')->with('error', 'Giỏ hàng trống');
-    //     }
-    //     DB::beginTransaction();
-    //     try {
-    //         $total = $cart->details->sum('amount');
-
-    //         $order = Order::create([
-    //             'order_code' => 'DH' . time(),
-    //             'account_id' => $user->id,
-    //             'name' => $user->name,
-    //             'email' => $user->email,
-    //             'phone' => $user->phone,
-    //             'address_id' => $address->id,
-    //             'booking_date' => Carbon::now(),
-    //             'total' => $total,
-    //             'payment_id' => 2,
-    //             'status_id' => 2, // đã thanh toán
-    //         ]);
-
-    //         foreach ($cart->details as $item) {
-    //             DB::table('order_details')->insert([
-    //                 'order_id' => $order->id,
-    //                 'product_variant_id' => $item->product_variant_id,
-    //                 'product_id' => $item->ProductVariant->product_id,
-    //                 'quantity' => $item->quantity,
-    //                 'price' => $item->price,
-    //                 'amount' => $item->amount,
-    //             ]);
-    //         }
-
-    //         $cart->details()->delete();
-    //         $cart->delete();
-    //         DB::commit();
-
-    //         return redirect()->route('order.success')->with('success', 'Đặt hàng thành công qua MoMo');
-    //     } catch (\Throwable $e) {
-    //         DB::rollBack();
-    //         return redirect()->route('cart.index')->with('error', 'Lỗi tạo đơn hàng: ' . $e->getMessage());
-    //     }
-    // }
+    public function momoReturn(Request $request)
+    {
+        if ($request->resultCode != 0) {
+            return redirect()->route('cart.index')->with('error', 'Thanh toán thất bại');
+        }
+        $order = Order::where('order_code', $request->orderId)->first();
+        if (!$order) {
+            return redirect()->route('cart.index')->with('error', 'Đơn hàng không tồn tại');
+        }
+        $order->update(['status_id' => 2]);
+        $cart = Cart::where('account_id', $order->account_id)->with('details')->first();
+        if ($cart) {
+            $cart->details()->delete();
+            $cart->delete();
+        }
+        return redirect()->route('order.success')->with('success', 'Đặt hàng thành công qua MoMo');
+    }
 }

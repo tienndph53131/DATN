@@ -357,7 +357,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <input type="hidden" name="payment_id" value="1">
+                        {{-- <input type="hidden" name="payment_id" value="1"> --}}
 
                         <!-- Giỏ hàng -->
                         @if (isset($cartDetails) && count($cartDetails) > 0)
@@ -398,22 +398,31 @@
                                 </div>
                             </div>
 
-                            <div class="buttons-section">
-                                <button type="submit" class="btn btn-primary">💳 Thanh Toán COD</button>
+                            <hr>
+
+                            <h3>Phương thức thanh toán</h3>
+
+                            <div class="form-group">
+                                <select name="payment_id" required>
+                                    <option value="1">COD (Thanh toán khi nhận hàng)</option>
+                                    <option value="2">MoMo</option>
+                                </select>
                             </div>
+
+                            <button type="submit" class="btn btn-primary">Đặt hàng</button>
                         @endif
                     </form>
                 </div>
 
                 <!-- MoMo Payment Form -->
-                <div class="checkout-form-section" style="margin-top: 20px;">
+                {{-- <div class="checkout-form-section" style="margin-top: 20px;">
                     <form action="{{ route('momo.payment') }}" method="post">
                         @csrf
                         <input type="hidden" name="total_momo" id="total_momo" value="{{ $total ?? 0 }}">
                         <input type="hidden" name="payment_id" value="2">
                         <button type="submit" class="btn btn-secondary">🏦 Thanh Toán MoMo</button>
                     </form>
-                </div>
+                </div> --}}
             </div>
 
             <!-- Right Column - Order Summary -->
