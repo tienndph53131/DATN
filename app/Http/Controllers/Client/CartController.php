@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Client;
+
 use App\Http\Controllers\Controller;
 use App\Models\ProductVariant;
 use App\Models\Cart;
@@ -13,20 +14,13 @@ class CartController extends Controller
     // Trang xem giỏ hàng
     public function index()
     {
-        // Chỉ hiển thị nếu user đăng nhập
         if (!Auth::guard('client')->check()) {
             return redirect()->route('client.login')->with('error', 'Vui lòng đăng nhập để xem giỏ hàng.');
         }
 
         $account = Auth::guard('client')->user();
-
-        // Lấy giỏ hàng hoặc tạo mới
         $cart = Cart::firstOrCreate(['account_id' => $account->id]);
-
-        // Lấy chi tiết giỏ hàng kèm thông tin sản phẩm và biến thể
-        $cartDetails = $cart->details()->with('productVariant.product')->get();
-
-        // Tính tổng tiền
+        $cartDetails = $cart->details()->with('productVariant.product', 'productVariant.attributeValues')->get();
         $total = $cartDetails->sum('amount');
 
         return view('client.cart', ['cart' => $cartDetails, 'total' => $total]);
@@ -37,7 +31,6 @@ class CartController extends Controller
     {
         $request->validate([
             'variant_id' => 'required|exists:product_variants,id',
-
             'quantity' => 'required|integer|min:1',
         ]);
 
@@ -45,18 +38,12 @@ class CartController extends Controller
             return redirect()->route('client.login')->with('error', 'Vui lòng đăng nhập để thêm sản phẩm.');
         }
 
-        $variantId = $request->input('variant_id');
-        $quantity = $request->input('quantity');
+        $variantId = $request->variant_id;
+        $quantity = $request->quantity;
         $variant = ProductVariant::find($variantId);
 
-        if (!$variant) {
-            return back()->with('error', 'Không tìm thấy biến thể sản phẩm.');
-        }
-
-
-        if ($quantity > $variant->stock_quantity) {
-            return back()->with('error', 'Số lượng sản phẩm không đủ!');
-        }
+        if (!$variant) return back()->with('error', 'Không tìm thấy biến thể sản phẩm.');
+        if ($quantity > $variant->stock_quantity) return back()->with('error', 'Số lượng sản phẩm không đủ!');
 
         $account = Auth::guard('client')->user();
         $cart = Cart::firstOrCreate(['account_id' => $account->id]);
@@ -68,9 +55,7 @@ class CartController extends Controller
 
         $newQty = ($detail->exists ? $detail->quantity : 0) + $quantity;
 
-        if ($newQty > $variant->stock_quantity) {
-            return back()->with('error', 'Số lượng sản phẩm không đủ trong kho!');
-        }
+        if ($newQty > $variant->stock_quantity) return back()->with('error', 'Số lượng sản phẩm không đủ trong kho!');
 
         $detail->quantity = $newQty;
         $detail->product_id = $variant->product_id;
@@ -81,14 +66,14 @@ class CartController extends Controller
         return redirect()->route('cart.index')->with('success', 'Đã thêm vào giỏ hàng!');
     }
 
-    // Xóa sản phẩm khỏi giỏ
+    // Xóa sản phẩm (AJAX)
     public function remove(Request $request)
     {
         if (!Auth::guard('client')->check()) {
-            return redirect()->route('client.login')->with('error', 'Vui lòng đăng nhập để xóa sản phẩm.');
+            return response()->json(['success' => false, 'message' => 'Vui lòng đăng nhập']);
         }
 
-        $variantId = $request->input('variant_id');
+        $variantId = $request->variant_id;
         $account = Auth::guard('client')->user();
         $cart = Cart::where('account_id', $account->id)->first();
 
@@ -96,30 +81,30 @@ class CartController extends Controller
             CartDetail::where('cart_id', $cart->id)
                 ->where('product_variant_id', $variantId)
                 ->delete();
-        }
+}
 
-        return back()->with('success', 'Đã xóa sản phẩm khỏi giỏ hàng!');
+        // Tính tổng mới
+        $total = $cart ? $cart->details()->sum('amount') : 0;
+
+        return response()->json(['success' => true, 'total' => $total]);
     }
 
-    // Cập nhật số lượng
+    // Cập nhật số lượng (AJAX)
     public function update(Request $request)
     {
         if (!Auth::guard('client')->check()) {
-            return redirect()->route('client.login')->with('error', 'Vui lòng đăng nhập để cập nhật giỏ hàng.');
+            return response()->json(['success' => false, 'message' => 'Vui lòng đăng nhập']);
         }
 
-        $variantId = $request->input('variant_id');
-        $quantity = (int) $request->input('quantity');
-
+        $variantId = $request->variant_id;
+        $quantity = (int) $request->quantity;
 
         $variant = ProductVariant::find($variantId);
         if (!$variant) {
-            return back()->with('error', 'Không tìm thấy biến thể.');
+            return response()->json(['success' => false, 'message' => 'Không tìm thấy biến thể']);
         }
 
-        if ($quantity > $variant->stock_quantity) {
-            return back()->with('error', 'Số lượng sản phẩm không đủ!');
-        }
+       
 
         $account = Auth::guard('client')->user();
         $cart = Cart::where('account_id', $account->id)->first();
@@ -135,6 +120,9 @@ class CartController extends Controller
                 $detail->save();
             }
         }
-        return back()->with('success', 'Đã cập nhật giỏ hàng!');
+
+        $total = $cart ? $cart->details()->sum('amount') : 0;
+
+        return response()->json(['success' => true, 'total' => $total]);
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Client\CheckoutController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,11 +21,11 @@ use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\CartController;
 use App\Http\Controllers\Client\AuthController;
 use App\Http\Controllers\Client\ProfileController;
+
 Route::prefix('admin')->group(function () {
     Route::resource('categories', CategoryController::class);
-   Route::resource('products', ProductController::class);
-  Route::resource('attribute_values', AttributeValueController::class);
-
+    Route::resource('products', ProductController::class);
+    Route::resource('attribute_values', AttributeValueController::class);
 });
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/category/{id}', [HomeController::class, 'showCategory'])->name('category.show');
@@ -40,12 +41,22 @@ Route::get('/register', [AuthController::class, 'showRegister'])->name('client.r
 Route::post('/register', [AuthController::class, 'register'])->name('client.register.post');
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('client.logout');
-Route::middleware('auth:client')->group(function(){
-    Route::get('/profile',[ProfileController::class,'edit'])->name('profile.edit');
-    Route::post('/profile',[ProfileController::class,'update'])->name('profile.update');
-    Route::get('/profile/districts', [ProfileController::class,'getDistricts'])->name('profile.districts');
-Route::get('/profile/wards', [ProfileController::class,'getWards'])->name('profile.wards');
-
+Route::middleware('auth:client')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/districts', [ProfileController::class, 'getDistricts'])->name('profile.districts');
+    Route::get('/profile/wards', [ProfileController::class, 'getWards'])->name('profile.wards');
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::post('/checkout', [CheckoutController::class, 'checkout'])->name('checkout.process');
 });
 
+// Route for MoMo payment
 
+Route::post('/momo_payment', [CheckoutController::class, 'momopayment'])->name('momo.payment');
+Route::get('/momo/return',[CheckoutController::class,'momoReturn'])->name('momo.return');
+Route::post('/momo/ipn', [CheckoutController::class, 'momoIpn'])->name('momo.ipn');
+
+// COD
+Route::get('/order/success', function () {
+    return view('client.success');
+})->name('order.success');
