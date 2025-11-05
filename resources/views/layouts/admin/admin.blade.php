@@ -65,6 +65,8 @@
     <i class="fa-solid fa-tag"></i> Giá trị thuộc tính
 </a>
     <a href="{{ url('/admin/users') }}" class="{{ request()->is('admin/users*') ? 'active' : '' }}"><i class="fa-solid fa-users"></i> Người dùng</a>
+
+    <a href="{{ url('/admin/comments') }}" class="{{ request()->is('admin/comments*') ? 'active' : '' }}"><i class="fa-solid fa-comments"></i> Đánh giá bình luận</a>
     <a href="{{ url('/') }}"><i class="fa-solid fa-house"></i> Trang chủ</a>
 </div>
 
@@ -76,7 +78,35 @@
     @include('layouts.admin.footer')  {{-- Footer --}}
 </div>
 
+<!-- Toast container for admin notifications -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+    <div id="globalToast" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body" id="globalToastBody">&nbsp;</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 @stack('scripts')
+@yield('scripts')
 </body>
 </html>
+
+<!-- Confirm modal used by admin pages for destructive actions -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Xác nhận</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="confirmModalBody">Bạn có chắc chắn muốn thực hiện hành động này?</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" id="confirmModalYes" class="btn btn-danger">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>

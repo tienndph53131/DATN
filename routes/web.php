@@ -24,9 +24,17 @@ use App\Http\Controllers\Client\ProfileController;
 
 Route::prefix('admin')->group(function () {
     Route::resource('categories', CategoryController::class);
-    Route::resource('products', ProductController::class);
-    Route::resource('attribute_values', AttributeValueController::class);
+
+   Route::resource('products', ProductController::class);
+  Route::resource('attribute_values', AttributeValueController::class);
+   Route::resource('comments', \App\Http\Controllers\Admin\CommentController::class);
 });
+// Admin bulk actions for comments
+Route::post('admin/comments/bulk', [\App\Http\Controllers\Admin\CommentController::class, 'bulk'])->name('comments.bulk');
+// Client comment submission (requires client auth)
+Route::post('/product/{id}/comments', [\App\Http\Controllers\Client\CommentController::class, 'store'])
+    ->name('product.comment.store')
+    ->middleware('auth:client');
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/category/{id}', [HomeController::class, 'showCategory'])->name('category.show');
 Route::get('/product/{id}', [HomeController::class, 'showProduct'])->name('product.show');
