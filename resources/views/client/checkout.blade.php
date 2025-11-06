@@ -406,9 +406,9 @@
                                 <select name="payment_id" required>
                                     <option value="1">COD (Thanh toán khi nhận hàng)</option>
                                     <option value="2">MoMo</option>
+                                    <option value="3">VNPay</option>
                                 </select>
                             </div>
-
                             <button type="submit" class="btn btn-primary">Đặt hàng</button>
                         @endif
                     </form>

@@ -105,12 +105,28 @@ class CheckoutController extends Controller
                 ]);
                 return $this->momopayment($total);
             }
+            if ($request->payment_id == 3) {
+                session([
+                    'vnpay_order' => [
+                        'account_id' => auth()->id(),
+                        'name' => $request->name,
+                        'email' => $request->email,
+                        'phone' => $request->phone,
+                        'address_id' => $request->address_id,
+                        'total' => $total,
+                        'note' => $request->note ?? null,
+                        'cart_details' => $cartDetailsArray,
+                        'payment_id' => 3,
+
+                    ]
+                ]);
+                return $this->vnpay_payment();
+            }
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Đã có lỗi xảy ra trong quá trình thanh toán: ' . $e->getMessage());
         }
     }
-
     public function execPostRequest($url, $data)
     {
         $ch = curl_init($url);
@@ -181,55 +197,6 @@ class CheckoutController extends Controller
 
         // header("Location: " . $jsonResult['payUrl']);
     }
-    // public function momoIpn(Request $request)
-    // {
-
-    //     $order = Order::where('order_code', $request->orderId)->first();
-    //     if ($request->resultCode == 0) {
-    //         $data = session('momo_order');
-    //         DB::beginTransaction();
-    //         try {
-    //             $order = Order::create([
-    //                 'order_code' => 'DH' . time(),
-    //                 'account_id' => auth()->id(),
-    //                 'name' => $data['name'],
-    //                 'email' => $data['email'],
-    //                 'phone' => $data['phone'],
-    //                 'address_id' => $data['address_id'],
-    //                 'booking_date' => Carbon::now(),
-    //                 'total' => $data['total_momo'],
-    //                 'note' => $data['note'] ?? null,
-    //                 'payment_id' => 2,
-    //                 'status_id' => 2,
-    //             ]);
-    //             foreach ($data['cart_details'] as $item) {
-    //                 DB::table('order_details')->insert([
-    //                     'order_id' => $order->id,
-    //                     'product_variant_id' => $item['product_variant_id'],
-    //                     'product_id' => $item['ProductVariant']['product_id'],
-    //                     'quantity' => $item['quantity'],
-    //                     'price' => $item['price'],
-    //                     'amount' => $item['amount'],
-    //                 ]);
-    //             }
-    //             $cart = Cart::where('account_id', auth()->id())->first();
-    //             if ($cart) {
-    //                 $cart->details()->delete();
-    //                 $cart->delete();
-    //             }
-    //             session()->forget('momo_order');
-    //             DB::commit();
-    //             return response()->json(['message' => 'Thanh toán thành công'], 200);
-    //         } catch (\Throwable $th) {
-    //             DB::rollBack();
-    //             return response()->json(['message' => 'Đã có lỗi xảy ra trong quá trình thanh toán: ' . $th->getMessage()], 500);
-    //         }
-    //     } else {
-    //         $order->update(['status_id' => 4]); // canceled
-    //         return response()->json(['message' => 'Thanh toán thất bại'], 400);
-    //     }
-    // }
-
     public function momoReturn(Request $request)
     {
         if ($request->resultCode != 0) {
@@ -264,22 +231,7 @@ class CheckoutController extends Controller
                     'amount' => $item['amount'],
                 ]);
             }
-            // foreach ($cartDetails as $item) {
-            //     DB::table('order_details')->insert([
-            //         'order_id' => $order->id,
-            //         'product_variant_id' => $item->product_variant_id,
-            //         'product_id' => $item->ProductVariant->product_id,
-            //         'quantity' => $item->quantity,
-            //         'price' => $item->price,
-            //         'amount' => $item->amount,
-            //     ]);
-            // }
-            // $order = Order::where('order_code', $request->orderId)->first();
-            // if (!$order) {
-            //     return redirect()->route('cart.index')->with('error', 'Đơn hàng không tồn tại');
-            // }
-            // $order->update(['status_id' => 2]);
-            // $cart = Cart::where('account_id', $order->account_id)->with('details')->first();
+
             $cart = Cart::where('account_id', $data['account_id'])->first(); // lay cart theo account_id luu trong session momo_order
             if ($cart) {
                 $cart->details()->delete();
@@ -292,6 +244,161 @@ class CheckoutController extends Controller
             DB::rollBack();
             return redirect()->route('cart.index')
                 ->with('error', 'Đã có lỗi xảy ra: ' . $th->getMessage());
+        }
+    }
+    public function vnpay_payment()
+    {
+        $data = session('vnpay_order');
+        $code_cart = 'DH' . time();
+        $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+        $vnp_Returnurl = route('vnpay.return');
+        $vnp_TmnCode = "C0PZ3IV4"; //Mã website tại VNPAY 
+        $vnp_HashSecret = "JKG2BXY1SP03KK7OVHIA3C49VJVAQMVD"; //Chuỗi bí mật
+
+        $vnp_TxnRef = $code_cart; //Mã đơn hàng. Trong thực tế Merchant cần insert đơn hàng vào DB và gửi mã này 
+        $vnp_OrderInfo = "Thanh toan don hang:" . $code_cart;
+        $vnp_OrderType = "billpayment";
+        $vnp_Amount = $data['total'] * 100;
+        $vnp_Locale = 'vn';
+        $vnp_BankCode = 'NCB';
+        $vnp_IpAddr = $_SERVER['REMOTE_ADDR'];
+        // //Add Params of 2.0.1 Version
+        // $vnp_ExpireDate = $_POST['txtexpire'];
+        // //Billing
+        // $vnp_Bill_Mobile = $_POST['txt_billing_mobile'];
+        // $vnp_Bill_Email = $_POST['txt_billing_email'];
+        // $fullName = trim($_POST['txt_billing_fullname']);
+        // if (isset($fullName) && trim($fullName) != '') {
+        //     $name = explode(' ', $fullName);
+        //     $vnp_Bill_FirstName = array_shift($name);
+        //     $vnp_Bill_LastName = array_pop($name);
+        // }
+        // $vnp_Bill_Address = $_POST['txt_inv_addr1'];
+        // $vnp_Bill_City = $_POST['txt_bill_city'];
+        // $vnp_Bill_Country = $_POST['txt_bill_country'];
+        // $vnp_Bill_State = $_POST['txt_bill_state'];
+        // // Invoice
+        // $vnp_Inv_Phone = $_POST['txt_inv_mobile'];
+        // $vnp_Inv_Email = $_POST['txt_inv_email'];
+        // $vnp_Inv_Customer = $_POST['txt_inv_customer'];
+        // $vnp_Inv_Address = $_POST['txt_inv_addr1'];
+        // $vnp_Inv_Company = $_POST['txt_inv_company'];
+        // $vnp_Inv_Taxcode = $_POST['txt_inv_taxcode'];
+        // $vnp_Inv_Type = $_POST['cbo_inv_type'];
+        $inputData = array(
+            "vnp_Version" => "2.1.0",
+            "vnp_TmnCode" => $vnp_TmnCode,
+            "vnp_Amount" => $vnp_Amount,
+            "vnp_Command" => "pay",
+            "vnp_CreateDate" => date('YmdHis'),
+            "vnp_CurrCode" => "VND",
+            "vnp_IpAddr" => $vnp_IpAddr,
+            "vnp_Locale" => $vnp_Locale,
+            "vnp_OrderInfo" => $vnp_OrderInfo,
+            "vnp_OrderType" => $vnp_OrderType,
+            "vnp_ReturnUrl" => $vnp_Returnurl,
+            "vnp_TxnRef" => $vnp_TxnRef
+            // "vnp_ExpireDate" => $vnp_ExpireDate,
+            // "vnp_Bill_Mobile" => $vnp_Bill_Mobile,
+            // "vnp_Bill_Email" => $vnp_Bill_Email,
+            // "vnp_Bill_FirstName" => $vnp_Bill_FirstName,
+            // "vnp_Bill_LastName" => $vnp_Bill_LastName,
+            // "vnp_Bill_Address" => $vnp_Bill_Address,
+            // "vnp_Bill_City" => $vnp_Bill_City,
+            // "vnp_Bill_Country" => $vnp_Bill_Country,
+            // "vnp_Inv_Phone" => $vnp_Inv_Phone,
+            // "vnp_Inv_Email" => $vnp_Inv_Email,
+            // "vnp_Inv_Customer" => $vnp_Inv_Customer,
+            // "vnp_Inv_Address" => $vnp_Inv_Address,
+            // "vnp_Inv_Company" => $vnp_Inv_Company,
+            // "vnp_Inv_Taxcode" => $vnp_Inv_Taxcode,
+            // "vnp_Inv_Type" => $vnp_Inv_Type
+        );
+
+        if (isset($vnp_BankCode) && $vnp_BankCode != "") {
+            $inputData['vnp_BankCode'] = $vnp_BankCode;
+        }
+        if (isset($vnp_Bill_State) && $vnp_Bill_State != "") {
+            $inputData['vnp_Bill_State'] = $vnp_Bill_State;
+        }
+
+        //var_dump($inputData);
+        ksort($inputData);
+        $query = "";
+        $i = 0;
+        $hashdata = "";
+        foreach ($inputData as $key => $value) {
+            if ($i == 1) {
+                $hashdata .= '&' . urlencode($key) . "=" . urlencode($value);
+            } else {
+                $hashdata .= urlencode($key) . "=" . urlencode($value);
+                $i = 1;
+            }
+            $query .= urlencode($key) . "=" . urlencode($value) . '&';
+        }
+
+        $vnp_Url = $vnp_Url . "?" . $query;
+        if (isset($vnp_HashSecret)) {
+            $vnpSecureHash =   hash_hmac('sha512', $hashdata, $vnp_HashSecret); //  
+            $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
+        }
+        $returnData = array(
+            'code' => '00',
+            'message' => 'success',
+            'data' => $vnp_Url
+        );
+        if (isset($_POST['redirect'])) {
+            header('Location: ' . $vnp_Url);
+            die();
+        } else {
+            return redirect()->to($vnp_Url);
+        }
+    }
+    public function vnpayReturn(Request $request)
+    {
+        $data = session('vnpay_order');
+        $vnp_ResponseCode = $request->get('vnp_ResponseCode');
+        if ($vnp_ResponseCode == '00') {
+            // Thanh toan thanh cong
+            DB::beginTransaction();
+            try {
+                $order = Order::create([
+                    'order_code' => 'DH' . time(),
+                    'account_id' => $data['account_id'],
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+                    'phone' => $data['phone'],
+                    'address_id' => $data['address_id'],
+                    'booking_date' => Carbon::now(),
+                    'total' => $data['total'],
+                    'note' => $data['note'] ?? null,
+                    'payment_id' => $data['payment_id'],
+                    'status_id' => 2,
+                ]);
+                foreach ($data['cart_details'] as $item) {
+                    DB::table('order_details')->insert([
+                        'order_id' => $order->id,
+                        'product_variant_id' => $item['product_variant_id'],
+                        'product_id' => $item['product_id'],
+                        'quantity' => $item['quantity'],
+                        'price' => $item['price'],
+                        'amount' => $item['amount'],
+                    ]);
+                }
+                $cart = Cart::where('account_id', $data['account_id'])->first();
+                if ($cart) {
+                    $cart->details()->delete();
+                    $cart->delete();
+                }
+                session()->forget('vnpay_order');
+                DB::commit();
+                return redirect()->route('order.success')->with('success', 'Đặt hàng thành công qua VNPAY');
+            } catch (\Throwable $th) {
+                DB::rollBack();
+                return redirect()->route('cart.index')->with('error', 'Thanh toán thất bại');
+            }
+        } else {
+            return redirect()->route('cart.index')->with('error', 'Thanh toán thất bại');
         }
     }
 }

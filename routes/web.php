@@ -25,9 +25,9 @@ use App\Http\Controllers\Client\ProfileController;
 Route::prefix('admin')->group(function () {
     Route::resource('categories', CategoryController::class);
 
-   Route::resource('products', ProductController::class);
-  Route::resource('attribute_values', AttributeValueController::class);
-   Route::resource('comments', \App\Http\Controllers\Admin\CommentController::class);
+    Route::resource('products', ProductController::class);
+    Route::resource('attribute_values', AttributeValueController::class);
+    Route::resource('comments', \App\Http\Controllers\Admin\CommentController::class);
 });
 // Admin bulk actions for comments
 Route::post('admin/comments/bulk', [\App\Http\Controllers\Admin\CommentController::class, 'bulk'])->name('comments.bulk');
@@ -61,10 +61,12 @@ Route::middleware('auth:client')->group(function () {
 // Route for MoMo payment
 
 Route::post('/momo_payment', [CheckoutController::class, 'momopayment'])->name('momo.payment');
-Route::get('/momo/return',[CheckoutController::class,'momoReturn'])->name('momo.return');
-Route::post('/momo/ipn', [CheckoutController::class, 'momoIpn'])->name('momo.ipn');
+Route::get('/momo/return', [CheckoutController::class, 'momoReturn'])->name('momo.return');
 
 // COD
 Route::get('/order/success', function () {
     return view('client.success');
 })->name('order.success');
+// VNPay
+Route::post('/vnpay_payment', [CheckoutController::class, 'vnpay_payment'])->name('vnpay.payment');
+Route::get('/vnpay/return', [CheckoutController::class, 'vnpayReturn'])->name('vnpay.return');
