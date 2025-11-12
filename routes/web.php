@@ -20,12 +20,22 @@ use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\CartController;
 use App\Http\Controllers\Client\AuthController;
 use App\Http\Controllers\Client\ProfileController;
+use App\Http\Controllers\Admin\CommentController;
+use App\Http\Controllers\Client\CheckoutController;
+ 
 Route::prefix('admin')->group(function () {
     Route::resource('categories', CategoryController::class);
    Route::resource('products', ProductController::class);
   Route::resource('attribute_values', AttributeValueController::class);
+  Route::resource('comments', CommentController::class);
 
 });
+// Admin bulk actions for comments
+Route::post('admin/comments/bulk', [CommentController::class, 'bulk'])->name('comments.bulk');
+// Client comment submission (requires client auth)
+Route::post('/product/{id}/comments', [\App\Http\Controllers\Client\CommentController::class, 'store'])
+    ->name('product.comment.store')
+    ->middleware('auth:client');
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/category/{id}', [HomeController::class, 'showCategory'])->name('category.show');
 Route::get('/product/{id}', [HomeController::class, 'showProduct'])->name('product.show');
@@ -45,7 +55,22 @@ Route::middleware('auth:client')->group(function(){
     Route::post('/profile',[ProfileController::class,'update'])->name('profile.update');
     Route::get('/profile/districts', [ProfileController::class,'getDistricts'])->name('profile.districts');
 Route::get('/profile/wards', [ProfileController::class,'getWards'])->name('profile.wards');
+ Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::post('/checkout', [CheckoutController::class, 'checkout'])->name('checkout.process');
 
+// Route for MoMo payment
+
+Route::post('/momo_payment', [CheckoutController::class, 'momopayment'])->name('momo.payment');
+Route::post('/momo/ipn', [CheckoutController::class, 'momoIpn'])->name('momo.ipn');
+Route::get('/momo/return', [CheckoutController::class, 'momoReturn'])->name('momo.return');
+
+// COD
+Route::get('/order/success', function () {
+    return view('client.success');
+})->name('order.success');
+// VNPay
+Route::post('/vnpay_payment', [CheckoutController::class, 'vnpay_payment'])->name('vnpay.payment');
+Route::get('/vnpay/return', [CheckoutController::class, 'vnpayReturn'])->name('vnpay.return');
 });
 
 

@@ -69,7 +69,8 @@
         <div class="mb-3">
             <label>Quận/Huyện</label>
             <select id="district" name="district_id" class="form-control">
-                <option value="{{ $district_id ?? '' }}">{{ $address->district_name ?? 'Chọn Quận/Huyện' }}</option>
+               <option value="{{ $district_id ?? '' }}">{{ $address->district_name ?? 'Chọn Quận/Huyện' }}</option>
+
             </select>
         </div>
 
@@ -105,28 +106,27 @@ function loadDistricts(provinceId, selected = null){
     wardSelect.innerHTML = '<option value="">Chọn Xã/Phường</option>';
     if(!provinceId) return;
 
-    fetch("{{ route('profile.districts') }}?province_id=" + parseInt(provinceId))
+    fetch("{{ route('profile.districts') }}?province_id=" + provinceId)
+
     .then(res => res.json())
     .then(data => {
-        if(data && data.length > 0){
-            data.forEach(d => {
-                let option = document.createElement('option');
-                option.value = d.DistrictID.toString();
-                option.text = d.DistrictName;
-                if(selected && selected.toString() === d.DistrictID.toString()) option.selected = true;
-                districtSelect.appendChild(option);
-            });
-            const currentDistrict = selected ? selected.toString() : districtSelect.value;
-            if(currentDistrict) loadWards(currentDistrict, selectedWard);
-        } else {
-            // Fallback: nếu GHN API lỗi, giữ data từ DB
+    const districts = Array.isArray(data) ? data : (data.data || []);
+    if(districts.length > 0){
+        districts.forEach(d => {
             let option = document.createElement('option');
-            option.value = selectedDistrict;
-            option.text = districtSelect.options[0].text || 'Chọn Quận/Huyện';
-            option.selected = true;
+            option.value = d.DistrictID.toString();
+            option.text = d.DistrictName;
+            if(selected && selected.toString() === d.DistrictID.toString()) option.selected = true;
             districtSelect.appendChild(option);
-        }
-    }).catch(err=>{
+        });
+        const currentDistrict = selected ? selected.toString() : districtSelect.value;
+        if(currentDistrict) loadWards(currentDistrict, selectedWard);
+    } else {
+        console.warn("Không có quận nào trong dữ liệu:", data);
+    }
+})
+
+.catch(err=>{
         console.error('District load failed:', err);
         // Fallback data
         let option = document.createElement('option');
@@ -145,22 +145,20 @@ function loadWards(districtId, selected = null){
     fetch("{{ route('profile.wards') }}?district_id=" + districtId)
     .then(res => res.json())
     .then(data => {
-        if(data && data.length > 0){
-            data.forEach(w => {
-                let option = document.createElement('option');
-                option.value = w.WardCode;
-                option.text = w.WardName;
-                if(selected && selected === w.WardCode) option.selected = true;
-                wardSelect.appendChild(option);
-            });
-        } else {
+    const wards = Array.isArray(data) ? data : (data.data || []);
+    if(wards.length > 0){
+        wards.forEach(w => {
             let option = document.createElement('option');
-            option.value = selectedWard;
-            option.text = wardSelect.options[0].text || 'Chọn Xã/Phường';
-            option.selected = true;
+            option.value = w.WardCode;
+            option.text = w.WardName;
+            if(selected && selected === w.WardCode) option.selected = true;
             wardSelect.appendChild(option);
-        }
-    }).catch(err=>{
+        });
+    } else {
+        console.warn("Không có xã nào trong dữ liệu:", data);
+    }
+})
+.catch(err=>{
         console.error('Ward load failed:', err);
         let option = document.createElement('option');
         option.value = selectedWard;
@@ -179,4 +177,5 @@ if(provinceSelect.value){
     loadDistricts(provinceSelect.value, selectedDistrict);
 }
 </script>
+
 @endsection

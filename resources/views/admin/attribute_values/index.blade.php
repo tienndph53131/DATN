@@ -14,27 +14,46 @@
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th>ID</th>
-                <th>Thuộc tính</th>
-                <th>Giá trị</th>
-                <th>Hành động</th>
+                <th>Màu sắc</th>
+                <th>Kích cỡ</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($values as $item)
             <tr>
-                <td>{{ $item->id }}</td>
-                <td>{{ $item->attribute->name ?? 'N/A' }}</td>
-                <td>{{ $item->value }}</td>
+                {{-- Cột Màu sắc --}}
                 <td>
-                    <a href="{{ route('attribute_values.edit', $item->id) }}" class="btn btn-warning btn-sm">Sửa</a>
-                    <form action="{{ route('attribute_values.destroy', $item->id) }}" method="POST" style="display:inline-block">
-                        @csrf @method('DELETE')
-                        <button class="btn btn-danger btn-sm" onclick="return confirm('Xóa giá trị này?')">Xóa</button>
-                    </form>
+                    @foreach($values->where('attribute.name', 'Màu sắc') as $val)
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span>{{ $val->value }}</span>
+                            <div>
+                                <a href="{{ route('attribute_values.edit', $val->id) }}" class="btn btn-warning btn-sm">Sửa</a>
+                                <form action="{{ route('attribute_values.destroy', $val->id) }}" method="POST" style="display:inline-block">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-danger btn-sm" onclick="return confirm('Xóa giá trị này?')">Xóa</button>
+                                </form>
+                            </div>
+                        </div>
+                    @endforeach
+                </td>
+
+                {{-- Cột Kích cỡ --}}
+                <td>
+                    @foreach($values->where('attribute.name', 'Kích cỡ') as $val)
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span>{{ $val->value }}</span>
+                            <div>
+                                <a href="{{ route('attribute_values.edit', $val->id) }}" class="btn btn-warning btn-sm">Sửa</a>
+                                <form action="{{ route('attribute_values.destroy', $val->id) }}" method="POST" style="display:inline-block">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-danger btn-sm" onclick="return confirm('Xóa giá trị này?')">Xóa</button>
+                                </form>
+                            </div>
+                        </div>
+                    @endforeach
                 </td>
             </tr>
-            @endforeach
         </tbody>
     </table>
 </div>
