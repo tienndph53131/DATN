@@ -37,5 +37,8 @@
     <!-- Template Javascript -->
     <script src="{{ asset('js/main.js') }}"></script>
 
+    {{-- Scripts riêng của từng trang --}}
+    @yield('scripts')
+
 </body>
 </html>

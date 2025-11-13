@@ -5,9 +5,9 @@
 @section('content')
 <div class="container py-5">
     @if (session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
-    @if (session('success'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
+         @if (session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
     <div class="row">
@@ -39,16 +39,35 @@
                     {{ $defaultVariant ? number_format($defaultVariant->price, 0, ',', '.') . '₫' : 'Liên hệ' }}
                 </h2>
             </div>
-
-            <!-- Stock for selected variant -->
+ <!-- Stock for selected variant -->
             <p id="variant-stock" class="text-muted mb-3">
                 Kho: <span id="variant-stock-number">{{ $defaultVariant->stock_quantity ?? 0 }}</span>
             </p>
-
             <!-- Chọn màu sắc -->
             @if($colors->count())
             @php
-                // Colors are pre-mapped to CSS in the controller to avoid redeclaring functions in views.
+                function colorToCss($value){
+                    $map = [
+                        'trắng'=>'white',
+                        'đen'=>'black',
+                        'vàng'=>'yellow',
+                        'hồng'=>'pink',
+                        'xanh dương'=>'blue',
+                        'xanh lá'=>'green',
+                         'đỏ'      => 'red',
+                         'xám'     => 'gray',
+                         'nâu'     => '#8B4513',
+                        'tím'     => 'purple',
+                    ];
+                    $value = trim(strtolower($value));
+                    if(str_starts_with($value, '#')){
+                        return $value;
+                    } elseif(isset($map[$value])){
+                        return $map[$value];
+                    } else {
+                        return $value;
+                    }
+                }
             @endphp
             <div class="mb-3">
                 <label class="fw-bold d-block mb-2">Màu sắc:</label>
@@ -56,7 +75,7 @@
                     @foreach($colors as $color)
                         <button type="button"
                                 class="btn border rounded-circle p-3 me-2 color-option"
-                                style="background-color: {{ $color->css }};"
+                                style="background-color: {{ colorToCss($color->value) }};"
                                 data-attr="Màu sắc"
                                 data-value="{{ $color->value }}"
                                 title="{{ $color->value }}"></button>
@@ -117,8 +136,7 @@
             @endif
         </div>
     </div>
-
-    <!-- Bình luận & Đánh giá -->
+     <!-- Bình luận & Đánh giá -->
     <div class="row mt-5">
         <div class="col-12">
             <h4 class="fw-bold mb-3">Đánh giá & Bình luận</h4>
@@ -212,7 +230,8 @@
                            class="btn btn-outline-primary btn-sm">
                             Xem chi tiết
                         </a>
-    
+                    </div>
+                </div>
             </div>
         @endforeach
     </div>
@@ -225,7 +244,6 @@
 <script>
 const variantData = @json($variantData);
 let selected = {};
-
 // Initialize default selected variant (first one) so price/stock/variant-id are set
 const defaultVariant = variantData.length ? variantData[0] : null;
 if (defaultVariant) {
@@ -243,7 +261,6 @@ if (defaultVariant) {
         }
     }
 }
-
 // Chọn màu hoặc kích thước
 document.querySelectorAll('.color-option, .size-option').forEach(btn => {
     btn.addEventListener('click', function() {
@@ -269,7 +286,7 @@ document.querySelectorAll('.color-option, .size-option').forEach(btn => {
             document.getElementById('variant-price').textContent = 
                 new Intl.NumberFormat('vi-VN').format(variant.price) + '₫';
             document.getElementById('variant-id').value = variant.id;
-            // update stock display
+                        // update stock display
             const stockEl = document.getElementById('variant-stock-number');
             if (stockEl) stockEl.textContent = variant.stock_quantity ?? 0;
             // enforce max quantity according to stock
@@ -294,9 +311,10 @@ const hiddenQty = document.getElementById('input-quantity');
 
 // khi tăng giảm
 document.getElementById('increase').addEventListener('click', () => {
+    qty.value = parseInt(qty.value) + 1;
+    hiddenQty.value = qty.value;
     const max = parseInt(qty.max) || 99999;
     qty.value = Math.min(max, parseInt(qty.value) + 1);
-    hiddenQty.value = qty.value;
 });
 
 document.getElementById('decrease').addEventListener('click', () => {
@@ -308,7 +326,7 @@ document.getElementById('decrease').addEventListener('click', () => {
 qty.addEventListener('input', () => {
     const max = parseInt(qty.max) || 99999;
     if (qty.value < 1 || isNaN(qty.value)) qty.value = 1;
-    if (parseInt(qty.value) > max) qty.value = max;
+     if (parseInt(qty.value) > max) qty.value = max;
     hiddenQty.value = qty.value;
 });
 
@@ -325,7 +343,7 @@ document.getElementById('buyForm').addEventListener('submit', () => {
     border: 2px solid #dc3545 !important;
     box-shadow: 0 0 5px rgba(220, 53, 69, 0.5);
 }
-/* Nút chọn kích thước (size) */
+* Nút chọn kích thước (size) */
 .size-option {
     font-weight: 600; /* chữ rõ hơn */
     border: 2px solid #aaa; /* viền rõ hơn */
@@ -455,10 +473,8 @@ document.getElementById('buyForm').addEventListener('submit', () => {
     display: none;
 }
 .star-display span { font-size:18px; }
-
 </style>
 @endsection
-
 @section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {

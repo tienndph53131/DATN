@@ -65,8 +65,9 @@
     <i class="fa-solid fa-tag"></i> Giá trị thuộc tính
 </a>
     <a href="{{ url('/admin/users') }}" class="{{ request()->is('admin/users*') ? 'active' : '' }}"><i class="fa-solid fa-users"></i> Người dùng</a>
-
-    <a href="{{ url('/admin/comments') }}" class="{{ request()->is('admin/comments*') ? 'active' : '' }}"><i class="fa-solid fa-comments"></i> Đánh giá bình luận</a>
+    
+     <li><a class="dropdown-item" href="{{ route('comments.index') }}"><i class="fa-solid fa-comments me-2"></i> Quản lý bình luận</a></li>
+            <li><hr class="dropdown-divider"></li>
     <a href="{{ url('/') }}"><i class="fa-solid fa-house"></i> Trang chủ</a>
 </div>
 
@@ -77,7 +78,6 @@
     </div>
     @include('layouts.admin.footer')  {{-- Footer --}}
 </div>
-
 <!-- Toast container for admin notifications -->
 <div class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
     <div id="globalToast" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
@@ -87,13 +87,11 @@
         </div>
     </div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 @stack('scripts')
 @yield('scripts')
 </body>
 </html>
-
 <!-- Confirm modal used by admin pages for destructive actions -->
 <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-dialog-centered">
