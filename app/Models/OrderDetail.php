@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+// chi tiet don hang 
 class OrderDetail extends Model
 {
     use HasFactory;
@@ -19,4 +19,9 @@ class OrderDetail extends Model
     {
         return $this->belongsTo(Order::class, 'order_id');
     }
+    public function productVariant()
+    {
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
+    }
+    
 }
