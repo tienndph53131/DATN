@@ -9,7 +9,6 @@ use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 
 class CheckoutController extends Controller
 {
@@ -152,7 +151,10 @@ class CheckoutController extends Controller
     }
     public function momopayment($total)
     {
+
         $endpoint = "https://test-payment.momo.vn/v2/gateway/api/create";
+
+
         $partnerCode = 'MOMOBKUN20180529';
         $accessKey = 'klm05TvNBzhg7h7j';
         $secretKey = 'at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa';
@@ -199,11 +201,11 @@ class CheckoutController extends Controller
         if ($request->resultCode != 0) {
             return redirect()->route('cart.index')->with('error', 'Thanh toán thất bại');
         }
-        $data = session('momo_order'); // lay du lieu tu session
+        $data = session('momo_order');
         if (!$data) {
             return redirect()->route('cart.index')->with('error', 'Dữ liệu đơn hàng không tồn tại');
         }
-        DB::beginTransaction(); // bat dau giao dich
+        DB::beginTransaction();
         try {
             $order = Order::create([
                 'order_code' => 'DH' . time(),
@@ -236,13 +238,6 @@ class CheckoutController extends Controller
             }
             session()->forget('momo_order');
             DB::commit();
-            Mail::raw(
-                "Cảm ơn {$order->name} đã đặt hàng #{$order->order_code} với tổng tiền là {$order->total}, Chúng tôi sẽ liên hệ sớm nhất với bạn",
-                function ($message) use ($order) {
-                    $message->to($order->email) // send to email nguoi dung da nhap
-                        ->subject("Xác nhận đơn hàng #{{$order->order_code}}"); // tieu de email
-                }
-            );
             return redirect()->route('order.success')->with('success', 'Đặt hàng thành công qua MoMo');
         } catch (\Throwable $th) {
             DB::rollBack();
@@ -266,7 +261,29 @@ class CheckoutController extends Controller
         $vnp_Locale = 'vn';
         $vnp_BankCode = 'NCB';
         $vnp_IpAddr = $_SERVER['REMOTE_ADDR'];
-
+        // //Add Params of 2.0.1 Version
+        // $vnp_ExpireDate = $_POST['txtexpire'];
+        // //Billing
+        // $vnp_Bill_Mobile = $_POST['txt_billing_mobile'];
+        // $vnp_Bill_Email = $_POST['txt_billing_email'];
+        // $fullName = trim($_POST['txt_billing_fullname']);
+        // if (isset($fullName) && trim($fullName) != '') {
+        //     $name = explode(' ', $fullName);
+        //     $vnp_Bill_FirstName = array_shift($name);
+        //     $vnp_Bill_LastName = array_pop($name);
+        // }
+        // $vnp_Bill_Address = $_POST['txt_inv_addr1'];
+        // $vnp_Bill_City = $_POST['txt_bill_city'];
+        // $vnp_Bill_Country = $_POST['txt_bill_country'];
+        // $vnp_Bill_State = $_POST['txt_bill_state'];
+        // // Invoice
+        // $vnp_Inv_Phone = $_POST['txt_inv_mobile'];
+        // $vnp_Inv_Email = $_POST['txt_inv_email'];
+        // $vnp_Inv_Customer = $_POST['txt_inv_customer'];
+        // $vnp_Inv_Address = $_POST['txt_inv_addr1'];
+        // $vnp_Inv_Company = $_POST['txt_inv_company'];
+        // $vnp_Inv_Taxcode = $_POST['txt_inv_taxcode'];
+        // $vnp_Inv_Type = $_POST['cbo_inv_type'];
         $inputData = array(
             "vnp_Version" => "2.1.0",
             "vnp_TmnCode" => $vnp_TmnCode,
@@ -280,6 +297,21 @@ class CheckoutController extends Controller
             "vnp_OrderType" => $vnp_OrderType,
             "vnp_ReturnUrl" => $vnp_Returnurl,
             "vnp_TxnRef" => $vnp_TxnRef
+            // "vnp_ExpireDate" => $vnp_ExpireDate,
+            // "vnp_Bill_Mobile" => $vnp_Bill_Mobile,
+            // "vnp_Bill_Email" => $vnp_Bill_Email,
+            // "vnp_Bill_FirstName" => $vnp_Bill_FirstName,
+            // "vnp_Bill_LastName" => $vnp_Bill_LastName,
+            // "vnp_Bill_Address" => $vnp_Bill_Address,
+            // "vnp_Bill_City" => $vnp_Bill_City,
+            // "vnp_Bill_Country" => $vnp_Bill_Country,
+            // "vnp_Inv_Phone" => $vnp_Inv_Phone,
+            // "vnp_Inv_Email" => $vnp_Inv_Email,
+            // "vnp_Inv_Customer" => $vnp_Inv_Customer,
+            // "vnp_Inv_Address" => $vnp_Inv_Address,
+            // "vnp_Inv_Company" => $vnp_Inv_Company,
+            // "vnp_Inv_Taxcode" => $vnp_Inv_Taxcode,
+            // "vnp_Inv_Type" => $vnp_Inv_Type
         );
 
         if (isset($vnp_BankCode) && $vnp_BankCode != "") {
@@ -343,15 +375,23 @@ class CheckoutController extends Controller
                     'status_id' => 2,
                 ]);
                 foreach ($data['cart_details'] as $item) {
-                    DB::table('order_details')->insert([
-                        'order_id' => $order->id,
-                        'product_variant_id' => $item['product_variant_id'],
-                        'product_id' => $item['product_id'],
-                        'quantity' => $item['quantity'],
-                        'price' => $item['price'],
-                        'amount' => $item['amount'],
-                    ]);
-                }
+    DB::table('order_details')->insert([
+        'order_id' => $order->id,
+        'product_variant_id' => $item['product_variant_id'],
+        'product_id' => $item['product_id'],
+        'quantity' => $item['quantity'],
+        'price' => $item['price'],
+        'amount' => $item['amount'],
+    ]);
+
+    $variant = \App\Models\ProductVariant::find($item['product_variant_id']);
+    if (!$variant || $variant->stock_quantity < $item['quantity']) {
+        throw new \Exception('Sản phẩm không đủ tồn kho.');
+    }
+
+    $variant->decrement('stock_quantity', $item['quantity']);
+}
+
                 $cart = Cart::where('account_id', $data['account_id'])->first();
                 if ($cart) {
                     $cart->details()->delete();
@@ -359,10 +399,6 @@ class CheckoutController extends Controller
                 }
                 session()->forget('vnpay_order');
                 DB::commit();
-                Mail::raw("Cảm ơn {$order->name} đã đặt hàng #{$order->order_code} với tổng tiền là {$order->total}, Chúng tôi sẽ liên hệ sớm nhất với bạn", function ($message) use ($order) {
-                    $message->to($order->email)
-                        ->subject("Xác nhận đơn hàng #{$order->order_code}");
-                });
                 return redirect()->route('order.success')->with('success', 'Đặt hàng thành công qua VNPAY');
             } catch (\Throwable $th) {
                 DB::rollBack();
@@ -372,6 +408,4 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Thanh toán thất bại');
         }
     }
-  
-
 }

@@ -68,6 +68,13 @@ class HomeController extends Controller
         $colors = $colorAttribute
             ? $colorAttribute->values()->whereIn('id', $attrValueIds)->get()
             : collect();
+ // Map color values to CSS safe strings to avoid declaring functions in views
+        $colors = $colors->map(function ($c) {
+            return (object) [
+                'value' => $c->value,
+                'css' => $this->colorToCss($c->value),
+            ];
+        });
 
         // Map color values to CSS safe strings to avoid declaring functions in views
         $colors = $colors->map(function ($c) {
@@ -87,6 +94,17 @@ class HomeController extends Controller
                 'attributes' => $v->attributeValues->pluck('value', 'attribute.name')->toArray()
             ];
         });
+        // Lấy bình luận đã duyệt để hiển thị
+        $comments = $product->comments()->where('status', 1)->with('account')->orderByDesc('date')->get();
+
+        // Rating aggregates
+        $avgRating = $comments->count() ? round($comments->avg('rating'), 1) : 0;
+        $totalReviews = $comments->count();
+        $ratingCounts = [];
+        for ($i = 5; $i >= 1; $i--) {
+            $ratingCounts[$i] = $comments->where('rating', $i)->count();
+        }
+
 
         // Lấy bình luận đã duyệt để hiển thị
         $comments = $product->comments()->where('status', 1)->with('account')->orderByDesc('date')->get();
@@ -112,8 +130,7 @@ class HomeController extends Controller
             'ratingCounts'
         ));
     }
-
-    // Helper: map color value to CSS color. Kept private to avoid global redeclare issues in views.
+     // Helper: map color value to CSS color. Kept private to avoid global redeclare issues in views.
     private function colorToCss(?string $value): string
     {
         $map = [

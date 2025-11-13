@@ -74,20 +74,23 @@
                 </select>
             </div>
 
-            <div class="mb-3">
-                <label>Xã/Phường</label>
-                <select id="ward" name="ward_id" class="form-control">
-                    <option value="{{ $ward_id ?? '' }}">{{ $address->ward_name ?? 'Chọn Xã/Phường' }}</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label>Địa chỉ chi tiết</label>
-                <input type="text" name="address_detail" value="{{ $address_detail }}" class="form-control"
-                    placeholder="Số nhà, đường, khu vực">
-            </div>
+            </select>
+    </div>
 
-            <button type="submit" class="btn btn-primary">Cập nhật</button>
-        </form>
+    <div class="mb-3">
+        <label>Xã/Phường</label>
+        <select id="ward" name="ward_id" class="form-control">
+            <option value="{{ $ward_id ?? '' }}">{{ $address->ward_name ?? 'Chọn Xã/Phường' }}</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label>Địa chỉ chi tiết</label>
+        <input type="text" name="address_detail" value="{{ $address_detail }}" class="form-control"
+            placeholder="Số nhà, đường, khu vực">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Cập nhật</button>
+    </form>
     </div>
 @endsection
 

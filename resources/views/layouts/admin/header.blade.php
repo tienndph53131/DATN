@@ -14,8 +14,6 @@
             <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2"></i> Hồ sơ</a></li>
             <li><a class="dropdown-item" href="#"><i class="fa-solid fa-gear me-2"></i> Cài đặt</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="{{ route('comments.index') }}"><i class="fa-solid fa-comments me-2"></i> Quản lý bình luận</a></li>
-            <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item text-danger" href="{{ url('/logout') }}"><i class="fa-solid fa-right-from-bracket me-2"></i> Đăng xuất</a></li>
         </ul>
     </div>

@@ -4,11 +4,6 @@
 
 @section('content')
     <div class="container py-5">
-        @if(session('error'))
-            <div class="alert alert-danger">
-                {{ session('error') }}
-            </div>
-        @endif
         <h2 class="fw-bold text-center mb-4 text-uppercase">Giỏ hàng của bạn</h2>
 
         @if(empty($cart) || count($cart) === 0)
