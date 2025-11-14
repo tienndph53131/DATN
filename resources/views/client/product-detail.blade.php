@@ -74,32 +74,6 @@ if (!function_exists('colorToCss')) {
             <!-- Chọn màu sắc -->
             @if($colors->count())
 <<<<<<< HEAD
-=======
-            @php
-                function colorToCss($value){
-                    $map = [
-                        'trắng'=>'white',
-                        'đen'=>'black',
-                        'vàng'=>'yellow',
-                        'hồng'=>'pink',
-                        'xanh dương'=>'blue',
-                        'xanh lá'=>'green',
-                         'đỏ'      => 'red',
-                         'xám'     => 'gray',
-                         'nâu'     => '#8B4513',
-                        'tím'     => 'purple',
-                    ];
-                    $value = trim(strtolower($value));
-                    if(str_starts_with($value, '#')){
-                        return $value;
-                    } elseif(isset($map[$value])){
-                        return $map[$value];
-                    } else {
-                        return $value;
-                    }
-                }
-            @endphp
->>>>>>> f49dd4e00beb01fa55f92881903902919f24b138
             <div class="mb-3">
                 <label class="fw-bold d-block mb-2">Màu sắc:</label>
                 <div class="d-flex align-items-center">
@@ -277,7 +251,6 @@ if (!function_exists('colorToCss')) {
 <script>
 const variantData = @json($variantData);
 let selected = {};
-<<<<<<< HEAD
 // Use static slugs to avoid Blade parsing issues
 const COLOR_SLUG = 'mau-sac';
 const SIZE_SLUG = 'kich-co';
@@ -285,31 +258,6 @@ const SIZE_SLUG = 'kich-co';
 const priceEl = document.getElementById('variant-price');
 const variantIdInput = document.getElementById('variant-id');
 const addToCartBtn = document.getElementById('add-to-cart-btn');
-=======
-// Initialize default selected variant (first one) so price/stock/variant-id are set
-const defaultVariant = variantData.length ? variantData[0] : null;
-if (defaultVariant) {
-    document.getElementById('variant-id').value = defaultVariant.id;
-    // set initial stock shown
-    const stockEl = document.getElementById('variant-stock-number');
-    if (stockEl) stockEl.textContent = defaultVariant.stock_quantity ?? 0;
-    // enforce max quantity
-    const qtyInput = document.getElementById('quantity');
-    if (qtyInput) {
-        qtyInput.max = defaultVariant.stock_quantity ?? 99999;
-        if (parseInt(qtyInput.value) > (defaultVariant.stock_quantity ?? 0)) {
-            qtyInput.value = Math.max(1, defaultVariant.stock_quantity ?? 1);
-            document.getElementById('input-quantity').value = qtyInput.value;
-        }
-    }
-}
-// Chọn màu hoặc kích thước
-document.querySelectorAll('.color-option, .size-option').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const attr = this.dataset.attr;
-        const value = this.dataset.value;
-        selected[attr] = value;
->>>>>>> f49dd4e00beb01fa55f92881903902919f24b138
 
 function normalize(v) {
     return (v || '').toString().trim().toLowerCase();
@@ -359,33 +307,9 @@ function findVariantByAttributes(attrs) {
         return Object.entries(attrs).every(([slug, val]) =>
             v.attributes[slug] && v.attributes[slug].toString() === val.toString()
         );
-<<<<<<< HEAD
-=======
-
-        if (variant) {
-            document.getElementById('variant-price').textContent = 
-                new Intl.NumberFormat('vi-VN').format(variant.price) + '₫';
-            document.getElementById('variant-id').value = variant.id;
-                        // update stock display
-            const stockEl = document.getElementById('variant-stock-number');
-            if (stockEl) stockEl.textContent = variant.stock_quantity ?? 0;
-            // enforce max quantity according to stock
-            const qtyInput = document.getElementById('quantity');
-            const hiddenQty = document.getElementById('input-quantity');
-            const maxStock = variant.stock_quantity ?? 0;
-            if (qtyInput) {
-                qtyInput.max = maxStock || 99999;
-                if (parseInt(qtyInput.value) > maxStock) {
-                    qtyInput.value = Math.max(1, maxStock);
-                    if (hiddenQty) hiddenQty.value = qtyInput.value;
-                }
-            }
-        }
->>>>>>> f49dd4e00beb01fa55f92881903902919f24b138
     });
 }
 
-<<<<<<< HEAD
 function updateAvailableOptions() {
     // Lấy tất cả các nút tùy chọn
     const colorOptions = document.querySelectorAll('.color-option');
@@ -505,37 +429,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('increase').onclick = () => { qtyInput.value = parseInt(qtyInput.value) + 1; formQtyInput.value = qtyInput.value; };
     document.getElementById('decrease').onclick = () => { qtyInput.value = Math.max(1, parseInt(qtyInput.value) - 1); formQtyInput.value = qtyInput.value; };
     qtyInput.addEventListener('input', () => formQtyInput.value = qtyInput.value);
-=======
-// Tăng giảm số lượng
-
-const qty = document.getElementById('quantity');
-const hiddenQty = document.getElementById('input-quantity');
-
-// khi tăng giảm
-document.getElementById('increase').addEventListener('click', () => {
-    qty.value = parseInt(qty.value) + 1;
-    hiddenQty.value = qty.value;
-    const max = parseInt(qty.max) || 99999;
-    qty.value = Math.min(max, parseInt(qty.value) + 1);
-});
-
-document.getElementById('decrease').addEventListener('click', () => {
-    qty.value = Math.max(1, parseInt(qty.value) - 1);
-    hiddenQty.value = qty.value;
-});
-
-// khi nhập tay vào input
-qty.addEventListener('input', () => {
-    const max = parseInt(qty.max) || 99999;
-    if (qty.value < 1 || isNaN(qty.value)) qty.value = 1;
-     if (parseInt(qty.value) > max) qty.value = max;
-    hiddenQty.value = qty.value;
-});
-
-// Đảm bảo đồng bộ trước khi submit form
-document.getElementById('buyForm').addEventListener('submit', () => {
-    hiddenQty.value = qty.value;
->>>>>>> f49dd4e00beb01fa55f92881903902919f24b138
 });
 </script>
 
@@ -566,15 +459,11 @@ document.getElementById('buyForm').addEventListener('submit', () => {
     box-shadow: 0 0 6px rgba(220, 53, 69, 0.5);
 }
 
-<<<<<<< HEAD
 .color-option.disabled, .size-option.disabled {
     opacity: 0.4;
     cursor: not-allowed;
 }
 
-=======
-/* Nút chọn màu (color) */
->>>>>>> f49dd4e00beb01fa55f92881903902919f24b138
 .color-option {
     width: 35px;
     height: 35px;

@@ -38,39 +38,12 @@ class CartController extends Controller
             return redirect()->route('client.login')->with('error', 'Vui lòng đăng nhập để thêm sản phẩm.');
         }
 
-<<<<<<< HEAD
-        // Kiểm tra số lượng tồn kho
-        if ($variant->stock_quantity < $quantity) {
-            return back()->with('error', 'Số lượng sản phẩm không đủ.');
-        }
-
-        $cart = session()->get('cart', []);
-
-        // Kiểm tra nếu sản phẩm đã có trong giỏ
-        if (isset($cart[$variantId])) {
-            $newQuantity = $cart[$variantId]['quantity'] + $quantity;
-            // Kiểm tra lại tổng số lượng trong giỏ và số lượng tồn kho
-            if ($variant->stock_quantity < $newQuantity) {
-                return back()->with('error', 'Số lượng sản phẩm trong giỏ hàng vượt quá số lượng tồn kho.');
-            }
-            $cart[$variantId]['quantity'] = $newQuantity;
-        } else {
-            $cart[$variantId] = [
-                'product_name' => $variant->product->name,
-                'variant' => $variant->attributeValues->pluck('value')->join(', '),
-                'price' => $variant->price,
-                'quantity' => $quantity,
-                'image' => $variant->product->image,
-            ];
-        }
-=======
         $variantId = $request->variant_id;
         $quantity = $request->quantity;
         $variant = ProductVariant::find($variantId);
 
         if (!$variant) return back()->with('error', 'Không tìm thấy biến thể sản phẩm.');
         if ($quantity > $variant->stock_quantity) return back()->with('error', 'Số lượng sản phẩm không đủ!');
->>>>>>> f49dd4e00beb01fa55f92881903902919f24b138
 
         $account = Auth::guard('client')->user();
         $cart = Cart::firstOrCreate(['account_id' => $account->id]);
@@ -119,28 +92,8 @@ class CartController extends Controller
     // Cập nhật số lượng (AJAX)
     public function update(Request $request)
     {
-<<<<<<< HEAD
-        $variantId = $request->input('variant_id');
-        $quantity = (int) $request->input('quantity');
-
-        $variant = ProductVariant::find($variantId);
-        if (!$variant) {
-            return back()->with('error', 'Sản phẩm không tồn tại.');
-        }
-
-        if ($variant->stock_quantity < $quantity) {
-            return back()->with('error', 'Số lượng cập nhật vượt quá số lượng tồn kho.');
-        }
-
-        $cart = session()->get('cart', []);
-
-        if (isset($cart[$variantId]) && $quantity > 0) {
-            $cart[$variantId]['quantity'] = $quantity;
-            session()->put('cart', $cart);
-=======
         if (!Auth::guard('client')->check()) {
             return response()->json(['success' => false, 'message' => 'Vui lòng đăng nhập']);
->>>>>>> f49dd4e00beb01fa55f92881903902919f24b138
         }
 
         $variantId = $request->variant_id;
