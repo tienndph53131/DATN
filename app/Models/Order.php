@@ -14,28 +14,59 @@ class Order extends Model
         'name',
         'email',
         'phone',
-        'address',
         'booking_date',
         'total',
         'note',
         'payment_id',
-        'status_id' 
+        'status_id',
+        'discount_id'
     ];
-    public function account(){
-        return $this->belongsTo(Account::class);
-    }
-    public function payment(){
-        return $this->belongsTo(PaymentMethod::class);
-    }
-    public function status(){
-        return $this->belongsTo(OrderStatus::class);
-    }
-    public function addresses()
+
+    /**
+     * Get the details for the order.
+     */
+    public function details()
     {
-        return $this->hasMany(OrderAddress::class);
+        return $this->hasMany(OrderDetail::class);
     }
+
+    /**
+     * Get the account that owns the order.
+     */
+    public function account()
+    {
+        return $this->belongsTo(Account::class, 'account_id');
+    }
+
+    /**
+     * Get the shipping address for the order.
+     */
+    public function orderAddress()
+    {
+        return $this->hasOne(OrderAddress::class);
+    }
+
+    /**
+     * Get the payment method for the order.
+     */
+    public function payment()
+    {
+        return $this->belongsTo(PaymentMethod::class, 'payment_id');
+    }
+
+    /**
+     * Get the status of the order.
+     */
+    public function status()
+    {
+        return $this->belongsTo(OrderStatus::class, 'status_id');
+    }
+
+    /**
+     * Get the discount associated with the order.
+     */
     public function discount()
     {
-        return $this->belongsTo(Discount::class);
+        return $this->belongsTo(Discount::class, 'discount_id');
     }
 }

@@ -32,6 +32,12 @@ if (!function_exists('colorToCss')) {
 
 @section('content')
 <div class="container py-5">
+    @if (session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
+         @if (session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
     <div class="row">
         <!-- Ảnh sản phẩm -->
         <div class="col-md-5 text-center">
@@ -44,12 +50,12 @@ if (!function_exists('colorToCss')) {
         <div class="col-md-7">
             <h3 class="fw-bold mb-2">{{ $product->name }}</h3>
             <p class="text-muted mb-1">
-                Trạng thái: 
+                {{-- Trạng thái: 
                 @if($product->status == 1)
                     <span class="text-success">Còn hàng</span>
                 @else
                     <span class="text-danger">Hết hàng</span>
-                @endif
+                @endif --}}
             </p>
 
             <!-- Giá sản phẩm -->
@@ -61,9 +67,39 @@ if (!function_exists('colorToCss')) {
                     {{ $defaultVariant ? number_format($defaultVariant->price, 0, ',', '.') . '₫' : ( $product->price ? number_format($product->price,0,',','.').'₫' : 'Liên hệ' ) }}
                 </h2>
             </div>
-
+ <!-- Stock for selected variant -->
+            <p id="variant-stock" class="text-muted mb-3">
+                Kho: <span id="variant-stock-number">{{ $defaultVariant->stock_quantity ?? 0 }}</span>
+            </p>
             <!-- Chọn màu sắc -->
             @if($colors->count())
+<<<<<<< HEAD
+=======
+            @php
+                function colorToCss($value){
+                    $map = [
+                        'trắng'=>'white',
+                        'đen'=>'black',
+                        'vàng'=>'yellow',
+                        'hồng'=>'pink',
+                        'xanh dương'=>'blue',
+                        'xanh lá'=>'green',
+                         'đỏ'      => 'red',
+                         'xám'     => 'gray',
+                         'nâu'     => '#8B4513',
+                        'tím'     => 'purple',
+                    ];
+                    $value = trim(strtolower($value));
+                    if(str_starts_with($value, '#')){
+                        return $value;
+                    } elseif(isset($map[$value])){
+                        return $map[$value];
+                    } else {
+                        return $value;
+                    }
+                }
+            @endphp
+>>>>>>> f49dd4e00beb01fa55f92881903902919f24b138
             <div class="mb-3">
                 <label class="fw-bold d-block mb-2">Màu sắc:</label>
                 <div class="d-flex align-items-center">
@@ -133,45 +169,115 @@ if (!function_exists('colorToCss')) {
             @endif
         </div>
     </div>
+     <!-- Bình luận & Đánh giá -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h4 class="fw-bold mb-3">Đánh giá & Bình luận</h4>
 
-    <!-- Sản phẩm liên quan -->
-    @if($relatedProducts->count())
-    <div class="mt-5">
-        <h4 class="mb-4 fw-bold">Sản phẩm liên quan</h4>
-        <div class="row">
-            @foreach($relatedProducts as $item)
-                <div class="col-md-3 mb-4">
-                    <div class="card border-0 shadow-sm h-100">
-                        <img src="{{ asset('uploads/products/' . $item->image) }}" 
-                             class="card-img-top" 
-                             alt="{{ $item->name }}">
-                        <div class="card-body text-center">
-                            <h6 class="fw-bold">{{ $item->name }}</h6>
-                            @php $itemPrice = $item->variants->min('price'); @endphp
-                            @if($itemPrice)
-                                <p class="text-danger fw-bold mb-2">
-                                    {{ number_format($itemPrice, 0, ',', '.') }}₫
-                                </p>
-                            @else
-                                <p class="text-muted mb-2">Liên hệ</p>
-                            @endif
-                            <a href="{{ route('product.show', $item->id) }}" 
-                               class="btn btn-outline-primary btn-sm">
-                                Xem chi tiết
-                            </a>
+            {{-- Form gửi bình luận (yêu cầu đăng nhập) --}}
+                @if(auth('client')->check())
+                    <form action="{{ route('product.comment.store', $product->id) }}" method="POST" class="mb-4">
+                        @csrf
+                        <div class="mb-2">
+                            <label class="form-label">Đánh giá</label>
+                            <div class="rating-input mb-2" style="font-size:22px;">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <input type="radio" id="star{{ $i }}" name="rating" value="{{ $i }}" style="display:none;" {{ old('rating') == $i ? 'checked' : '' }}>
+                                            <label for="star{{ $i }}" class="star-label" data-value="{{ $i }}">★</label>
+                                        @endfor
+                            </div>
                         </div>
+                        <div class="mb-2">
+                            <label class="form-label">Nội dung</label>
+                            <textarea name="content" class="form-control" rows="4" required></textarea>
+                        </div>
+                        <button class="btn btn-primary">Gửi bình luận</button>
+                    </form>
+            @else
+                <p class="mb-4">Bạn cần <a href="{{ route('client.login') }}">đăng nhập</a> để gửi bình luận.</p>
+            @endif
+
+            {{-- Danh sách bình luận đã duyệt --}}
+            @if(isset($comments) && $comments->count())
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <label class="me-2">Sắp xếp:</label>
+                        <select id="comment-sort" class="form-select form-select-sm d-inline-block" style="width:auto;">
+                            <option value="newest">Mới nhất</option>
+                            <option value="highest">Điểm cao nhất</option>
+                            <option value="lowest">Điểm thấp nhất</option>
+                        </select>
                     </div>
                 </div>
-            @endforeach
+
+                <div class="list-group" id="comments-list">
+                    @foreach($comments as $c)
+                        <div class="list-group-item comment-item" data-rating="{{ $c->rating }}" data-date="{{ $c->date->format('YmdHis') }}">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>{{ optional($c->account)->name ?? 'Khách' }}</strong>
+                                    <small class="text-muted ms-2">{{ $c->date->format('d/m/Y H:i') }}</small>
+                                </div>
+                                <div class="star-display" style="color:#f5b301">@for($i=1;$i<=5;$i++) @if($i <= $c->rating) <span>★</span> @else <span style="color:#ddd">★</span> @endif @endfor</div>
+                            </div>
+                            <p class="mt-2 mb-0">{{ $c->content }}</p>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p class="text-muted">Chưa có bình luận nào cho sản phẩm này.</p>
+            @endif
         </div>
     </div>
-    @endif
+        </div>
+    </div>
+
+    <!-- Sản phẩm liên quan -->
+@if($relatedProducts->count())
+<div class="mt-5">
+    <h4 class="mb-4 fw-bold">Sản phẩm liên quan</h4>
+    <div class="row">
+        @foreach($relatedProducts as $item)
+            @php
+                // Lấy biến thể đầu tiên làm mặc định
+                $defaultVariant = $item->variants->first();
+            @endphp
+
+            <div class="col-md-3 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <img src="{{ asset('uploads/products/' . $item->image) }}" 
+                         class="card-img-top" 
+                         alt="{{ $item->name }}">
+                    <div class="card-body text-center">
+                        <h6 class="fw-bold">{{ $item->name }}</h6>
+
+                        @if($defaultVariant && $defaultVariant->price)
+                            <p class="text-danger fw-bold mb-2">
+                                {{ number_format($defaultVariant->price, 0, ',', '.') }}₫
+                            </p>
+                        @else
+                            <p class="text-muted mb-2">Liên hệ</p>
+                        @endif
+
+                        <a href="{{ route('product.show', $item->id) }}" 
+                           class="btn btn-outline-primary btn-sm">
+                            Xem chi tiết
+                        </a>
+                    </div>
+                </div>
+            </div>
+        @endforeach
+    </div>
+</div>
+@endif
+
 </div>
 
 <!-- Script -->
 <script>
 const variantData = @json($variantData);
 let selected = {};
+<<<<<<< HEAD
 // Use static slugs to avoid Blade parsing issues
 const COLOR_SLUG = 'mau-sac';
 const SIZE_SLUG = 'kich-co';
@@ -179,6 +285,31 @@ const SIZE_SLUG = 'kich-co';
 const priceEl = document.getElementById('variant-price');
 const variantIdInput = document.getElementById('variant-id');
 const addToCartBtn = document.getElementById('add-to-cart-btn');
+=======
+// Initialize default selected variant (first one) so price/stock/variant-id are set
+const defaultVariant = variantData.length ? variantData[0] : null;
+if (defaultVariant) {
+    document.getElementById('variant-id').value = defaultVariant.id;
+    // set initial stock shown
+    const stockEl = document.getElementById('variant-stock-number');
+    if (stockEl) stockEl.textContent = defaultVariant.stock_quantity ?? 0;
+    // enforce max quantity
+    const qtyInput = document.getElementById('quantity');
+    if (qtyInput) {
+        qtyInput.max = defaultVariant.stock_quantity ?? 99999;
+        if (parseInt(qtyInput.value) > (defaultVariant.stock_quantity ?? 0)) {
+            qtyInput.value = Math.max(1, defaultVariant.stock_quantity ?? 1);
+            document.getElementById('input-quantity').value = qtyInput.value;
+        }
+    }
+}
+// Chọn màu hoặc kích thước
+document.querySelectorAll('.color-option, .size-option').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const attr = this.dataset.attr;
+        const value = this.dataset.value;
+        selected[attr] = value;
+>>>>>>> f49dd4e00beb01fa55f92881903902919f24b138
 
 function normalize(v) {
     return (v || '').toString().trim().toLowerCase();
@@ -228,9 +359,33 @@ function findVariantByAttributes(attrs) {
         return Object.entries(attrs).every(([slug, val]) =>
             v.attributes[slug] && v.attributes[slug].toString() === val.toString()
         );
+<<<<<<< HEAD
+=======
+
+        if (variant) {
+            document.getElementById('variant-price').textContent = 
+                new Intl.NumberFormat('vi-VN').format(variant.price) + '₫';
+            document.getElementById('variant-id').value = variant.id;
+                        // update stock display
+            const stockEl = document.getElementById('variant-stock-number');
+            if (stockEl) stockEl.textContent = variant.stock_quantity ?? 0;
+            // enforce max quantity according to stock
+            const qtyInput = document.getElementById('quantity');
+            const hiddenQty = document.getElementById('input-quantity');
+            const maxStock = variant.stock_quantity ?? 0;
+            if (qtyInput) {
+                qtyInput.max = maxStock || 99999;
+                if (parseInt(qtyInput.value) > maxStock) {
+                    qtyInput.value = Math.max(1, maxStock);
+                    if (hiddenQty) hiddenQty.value = qtyInput.value;
+                }
+            }
+        }
+>>>>>>> f49dd4e00beb01fa55f92881903902919f24b138
     });
 }
 
+<<<<<<< HEAD
 function updateAvailableOptions() {
     // Lấy tất cả các nút tùy chọn
     const colorOptions = document.querySelectorAll('.color-option');
@@ -350,6 +505,37 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('increase').onclick = () => { qtyInput.value = parseInt(qtyInput.value) + 1; formQtyInput.value = qtyInput.value; };
     document.getElementById('decrease').onclick = () => { qtyInput.value = Math.max(1, parseInt(qtyInput.value) - 1); formQtyInput.value = qtyInput.value; };
     qtyInput.addEventListener('input', () => formQtyInput.value = qtyInput.value);
+=======
+// Tăng giảm số lượng
+
+const qty = document.getElementById('quantity');
+const hiddenQty = document.getElementById('input-quantity');
+
+// khi tăng giảm
+document.getElementById('increase').addEventListener('click', () => {
+    qty.value = parseInt(qty.value) + 1;
+    hiddenQty.value = qty.value;
+    const max = parseInt(qty.max) || 99999;
+    qty.value = Math.min(max, parseInt(qty.value) + 1);
+});
+
+document.getElementById('decrease').addEventListener('click', () => {
+    qty.value = Math.max(1, parseInt(qty.value) - 1);
+    hiddenQty.value = qty.value;
+});
+
+// khi nhập tay vào input
+qty.addEventListener('input', () => {
+    const max = parseInt(qty.max) || 99999;
+    if (qty.value < 1 || isNaN(qty.value)) qty.value = 1;
+     if (parseInt(qty.value) > max) qty.value = max;
+    hiddenQty.value = qty.value;
+});
+
+// Đảm bảo đồng bộ trước khi submit form
+document.getElementById('buyForm').addEventListener('submit', () => {
+    hiddenQty.value = qty.value;
+>>>>>>> f49dd4e00beb01fa55f92881903902919f24b138
 });
 </script>
 
@@ -360,16 +546,196 @@ document.addEventListener('DOMContentLoaded', function() {
     border: 2px solid #dc3545 !important;
     box-shadow: 0 0 5px rgba(220, 53, 69, 0.5);
 }
+* Nút chọn kích thước (size) */
+.size-option {
+    font-weight: 600; /* chữ rõ hơn */
+    border: 2px solid #aaa; /* viền rõ hơn */
+    color: #333; /* chữ đậm hơn */
+    background-color: #fff;
+    transition: all 0.2s ease;
+}
+.size-option:hover {
+    border-color: #dc3545;
+    color: #dc3545;
+    font-weight: 700; /* đậm hơn khi hover */
+}
+.size-option.active {
+    border: 2px solid #dc3545 !important;
+    font-weight: 700;
+    color: #dc3545;
+    box-shadow: 0 0 6px rgba(220, 53, 69, 0.5);
+}
 
+<<<<<<< HEAD
 .color-option.disabled, .size-option.disabled {
     opacity: 0.4;
     cursor: not-allowed;
 }
 
+=======
+/* Nút chọn màu (color) */
+>>>>>>> f49dd4e00beb01fa55f92881903902919f24b138
 .color-option {
     width: 35px;
     height: 35px;
     padding: 0 !important;
+    border: 2px solid #aaa;
+    transition: all 0.2s ease;
 }
+.color-option:hover {
+    transform: scale(1.1);
+    border-color: #dc3545;
+}
+.color-option.active {
+    border: 2px solid #dc3545 !important;
+    box-shadow: 0 0 6px rgba(220, 53, 69, 0.5);
+}
+
+/* Nút tăng giảm số lượng */
+#increase, #decrease {
+    font-weight: 700;
+    font-size: 18px;
+    color: #333;
+    border: 2px solid #aaa;
+}
+#increase:hover, #decrease:hover {
+    background-color: #f8f9fa;
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+/* Input số lượng */
+#quantity {
+    font-weight: 600;
+    color: #333;
+    border: 2px solid #aaa;
+}
+
+/* Nút "Thêm vào giỏ" */
+#buyForm button {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    transition: 0.2s ease;
+}
+#buyForm button:hover {
+    background-color: #c82333;
+}
+
+.btn-outline-primary.btn-sm:hover {
+    background-color: #0d6efd;
+    color: #fff;
+    font-weight: 700;
+    
+}
+.size-option {
+    color: #000 !important;               
+    border-color: #000 !important;        
+    background-color: #fff !important;    
+    opacity: 1 !important;                
+    font-weight: 600;                     
+    transition: all 0.2s ease-in-out;
+}
+
+/* Khi hover chuột */
+.size-option:hover {
+    color: #fff !important;
+    background-color: #000 !important;
+    border-color: #000 !important;
+}
+
+/* Khi được chọn */
+.size-option.active {
+    color: #fff !important;
+    background-color: #dc3545 !important; /* Đỏ nổi bật */
+    border-color: #dc3545 !important;
+}
+.color-option {
+    border: 2px solid #ccc !important; /* viền dày hơn */
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.3); /* hiệu ứng đổ bóng nhẹ */
+    transition: all 0.2s ease-in-out;
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+    border-color: #000; /* viền đậm khi hover */
+}
+
+.color-option.active {
+    border: 3px solid #000 !important; /* khi được chọn thì viền đậm rõ */
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+}
+/* Star rating labels */
+.star-label {
+    cursor: pointer;
+    color: #ddd;
+    transition: color 0.15s ease-in-out, transform 0.08s;
+    font-size: 22px;
+    margin-right: 6px;
+}
+.star-label:hover {
+    transform: translateY(-2px);
+    color: #f5b301;
+}
+.rating-input input[type="radio"] {
+    display: none;
+}
+.star-display span { font-size:18px; }
 </style>
+@endsection
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Star rating selector UI
+    document.querySelectorAll('.star-label').forEach(label => {
+        const val = parseInt(label.dataset.value);
+        label.addEventListener('mouseover', () => highlightStars(val));
+        label.addEventListener('mouseout', () => restoreStars());
+        label.addEventListener('click', () => {
+            const radio = document.getElementById('star' + val);
+            if (radio) radio.checked = true;
+            restoreStars();
+        });
+    });
+
+    function highlightStars(n){
+        document.querySelectorAll('.star-label').forEach(l => {
+            const v = parseInt(l.dataset.value);
+            l.style.color = v <= n ? '#f5b301' : '#ddd';
+        });
+    }
+
+    function restoreStars(){
+        const checked = document.querySelector('.rating-input input[type=radio]:checked');
+        let current = checked ? parseInt(checked.value) : 0;
+        document.querySelectorAll('.star-label').forEach(l => {
+            const v = parseInt(l.dataset.value);
+            l.style.color = v <= current ? '#f5b301' : '#ddd';
+        });
+    }
+
+    // Initialize stars display
+    restoreStars();
+
+    // Sorting comments client-side
+    const sortSelect = document.getElementById('comment-sort');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', () => {
+            const list = document.getElementById('comments-list');
+            const items = Array.from(list.querySelectorAll('.comment-item'));
+            const mode = sortSelect.value;
+            items.sort((a,b) => {
+                if (mode === 'newest') return b.dataset.date.localeCompare(a.dataset.date);
+                if (mode === 'highest') return parseInt(b.dataset.rating) - parseInt(a.dataset.rating);
+                if (mode === 'lowest') return parseInt(a.dataset.rating) - parseInt(b.dataset.rating);
+                return 0;
+            });
+            items.forEach(i => list.appendChild(i));
+        });
+    }
+});
+</script>
 @endsection

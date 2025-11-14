@@ -11,8 +11,17 @@ class Cart extends Model
     protected $fillable = [
         'account_id',
     ];
-    public function account(){
-        return $this->belongsTo(Account::class);
+
+    public function account()
+    {
+        return $this->belongsTo(Account::class, 'account_id');
     }
 
+    /**
+     * Get the details for the cart.
+     */
+    public function details()
+    {
+        return $this->hasMany(CartDetail::class);
+    }
 }

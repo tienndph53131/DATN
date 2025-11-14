@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,15 +11,22 @@ class CartDetail extends Model
     use HasFactory;
     protected $fillable = [
         'cart_id',
+        'product_variant_id',
         'product_id',
         'quantity',
         'price',
         'amount'
     ];
-    public function cart(){
+    public function cart()
+    {
         return $this->belongsTo(Cart::class);
     }
-    public function product(){
+    public function product()
+    {
         return $this->belongsTo(Product::class);
+    }
+    public function productVariant()
+    {
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
 }

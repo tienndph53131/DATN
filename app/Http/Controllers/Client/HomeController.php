@@ -61,11 +61,31 @@ class HomeController extends Controller
             return $variant->attributeValues;
         })->unique('id');
 
+<<<<<<< HEAD
         $colors = $allAttributeValues->filter(function ($av) {
             return Str::slug($av->attribute->name) === 'mau-sac';
         });
         $sizes = $allAttributeValues->filter(function ($av) {
             return Str::slug($av->attribute->name) === 'kich-co';
+=======
+        // Lấy thuộc tính Màu sắc & Kích thước
+        $sizeAttribute = Attribute::where('name', 'Kích cỡ')->first();
+        $colorAttribute = Attribute::where('name', 'Màu sắc')->first();
+
+        $sizes = $sizeAttribute
+            ? $sizeAttribute->values()->whereIn('id', $attrValueIds)->get()
+            : collect();
+
+        $colors = $colorAttribute
+            ? $colorAttribute->values()->whereIn('id', $attrValueIds)->get()
+            : collect();
+ // Map color values to CSS safe strings to avoid declaring functions in views
+        $colors = $colors->map(function ($c) {
+            return (object) [
+                'value' => $c->value,
+                'css' => $this->colorToCss($c->value),
+            ];
+>>>>>>> f49dd4e00beb01fa55f92881903902919f24b138
         });
 
         // Tạo dữ liệu JSON cho view JS
@@ -88,13 +108,31 @@ class HomeController extends Controller
 
             return [
                 'id' => $v->id,
+<<<<<<< HEAD
                 'price' => $v->effective_price ?? $v->price,
                 'image' => $imageUrl,
                 'stock_quantity' => $v->stock_quantity, // [THÊM] stock_quantity cho JS
                 'attributes' => $attrMapId,
                 'attributes_text' => $attrMapText,
+=======
+                'price' => $v->price,
+                'stock_quantity' => $v->stock_quantity ?? 0,
+                'available' => ($v->stock_quantity ?? 0) > 0,
+                'attributes' => $v->attributeValues->pluck('value', 'attribute.name')->toArray()
+>>>>>>> f49dd4e00beb01fa55f92881903902919f24b138
             ];
         });
+        // Lấy bình luận đã duyệt để hiển thị
+        $comments = $product->comments()->where('status', 1)->with('account')->orderByDesc('date')->get();
+
+        // Rating aggregates
+        $avgRating = $comments->count() ? round($comments->avg('rating'), 1) : 0;
+        $totalReviews = $comments->count();
+        $ratingCounts = [];
+        for ($i = 5; $i >= 1; $i--) {
+            $ratingCounts[$i] = $comments->where('rating', $i)->count();
+        }
+
 
         return view('client.product-detail', compact(
             'categories',
@@ -102,7 +140,32 @@ class HomeController extends Controller
             'relatedProducts',
             'sizes',
             'colors',
-            'variantData'
+            'variantData',
+            'comments',
+            'avgRating',
+            'totalReviews',
+            'ratingCounts'
         ));
+    }
+     // Helper: map color value to CSS color. Kept private to avoid global redeclare issues in views.
+    private function colorToCss(?string $value): string
+    {
+        $map = [
+            'trắng' => 'white',
+            'đen' => 'black',
+            'vàng' => 'yellow',
+            'hồng' => 'pink',
+            'xanh dương' => 'blue',
+            'xanh lá' => 'green',
+            'đỏ' => 'red',
+            'xám' => 'gray',
+            'nâu' => '#8B4513',
+            'tím' => 'purple',
+        ];
+
+        if (!$value) return '';
+        $v = trim(mb_strtolower($value));
+        if (str_starts_with($v, '#')) return $value;
+        return $map[$v] ?? $value;
     }
 }

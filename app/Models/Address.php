@@ -8,18 +8,26 @@ use Illuminate\Database\Eloquent\Model;
 class Address extends Model
 {
     use HasFactory;
+    protected $table = 'address';
+
     protected $fillable = [
         'account_id',
         'name',
         'phone',
         'email',
-        'city',
-        'district',
-        'ward',
+        'province_id',
+        'province_name',
+        'district_id',
+        'district_name',
+        'ward_id',
+        'ward_name',
         'address_detail',
-        'is_default'
+        'is_default',
     ];
-    public function account(){
-        return $this->belongsTo(Account::class);
+
+    //Một địa chỉ thuộc về một tài khoản
+    public function account()
+    {
+        return $this->belongsTo(Account::class, 'account_id');
     }
 }
