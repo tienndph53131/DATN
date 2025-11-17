@@ -16,24 +16,29 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\AttributeValueController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\CommentController;
+use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\CartController;
 use App\Http\Controllers\Client\AuthController;
 use App\Http\Controllers\Client\ProfileController;
-use App\Http\Controllers\Admin\CommentController;
 use App\Http\Controllers\Client\CheckoutController;
+use App\Http\Controllers\Client\OrderController;
+
  
 Route::prefix('admin')->group(function () {
     Route::resource('categories', CategoryController::class);
    Route::resource('products', ProductController::class);
   Route::resource('attribute_values', AttributeValueController::class);
   Route::resource('comments', CommentController::class);
-
+ Route::resource('accounts', AccountController::class)->except(['create', 'store']);
+ Route::resource('orders', AdminOrderController::class);
 });
 // Admin bulk actions for comments
 Route::post('admin/comments/bulk', [CommentController::class, 'bulk'])->name('comments.bulk');
 // Client comment submission (requires client auth)
-Route::post('/product/{id}/comments', [\App\Http\Controllers\Client\CommentController::class, 'store'])
+Route::post('/product/{id}/comments', [CommentController::class, 'store'])
     ->name('product.comment.store')
     ->middleware('auth:client');
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -71,6 +76,17 @@ Route::get('/order/success', function () {
 // VNPay
 Route::post('/vnpay_payment', [CheckoutController::class, 'vnpay_payment'])->name('vnpay.payment');
 Route::get('/vnpay/return', [CheckoutController::class, 'vnpayReturn'])->name('vnpay.return');
+// Lịch sử đơn hàng (chỉ client đã đăng nhập)
+Route::middleware('auth:client')->group(function () {
+    Route::prefix('order-history')->group(function () {
+        Route::get('/', [OrderController::class, 'history'])->name('order.history');
+        Route::get('/{order_code}', [OrderController::class, 'detail'])->name('order.history.detail');
+         Route::post('/order-history/{order_code}/cancel', [OrderController::class, 'cancel'])
+        ->name('order.cancel');
+    });
+});
+
+
 });
 
 

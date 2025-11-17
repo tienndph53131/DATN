@@ -9,9 +9,12 @@ use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderSuccessMail;
 
 class CheckoutController extends Controller
 {
+     
     public function index()
     {
         $account = auth()->user();
@@ -428,4 +431,5 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Thanh toán thất bại');
         }
     }
+   
 }
