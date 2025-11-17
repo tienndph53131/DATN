@@ -17,7 +17,8 @@
                 <th>Ngày đặt</th>
                 <th>Tổng tiền</th>
                  <th>Phương thức thanh toán</th>
-                <th>Trạng thái</th>
+                <th>Trạng thái đơn hàng</th>
+                <th>Trạng thái thanh toán</th>
                 <th>Chi tiết</th>
             </tr>
             </thead>
@@ -28,8 +29,15 @@
                     <td>{{ $order->booking_date ?? '---' }}</td>
                     <td>{{ number_format($order->total) }} đ</td>
                      <td>{{ $order->payment->payment_method_name ?? '---' }}</td> 
+
                     <td>
                         <span class="badge bg-primary">{{ $order->status->status_name ?? '---' }}</span>
+                    </td>
+                    <td>
+                        <span class="badge 
+                            {{ $order->paymentStatus && $order->paymentStatus->id == 2 ? 'bg-success' : 'bg-warning' }}">
+                            {{ $order->paymentStatus->status_name ?? '---' }}
+                        </span>
                     </td>
                     <td>
                         <a href="{{ route('order.history.detail', $order->order_code) }}"

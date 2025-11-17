@@ -18,14 +18,13 @@
     {{ $order->ghn_address['province'] ?? '' }}
 </p>
         <p><strong>Phương thức thanh toán:</strong> {{ $order->payment->payment_method_name ?? '---' }}</p>
-        <p><strong>Trạng thái:</strong> 
+        <p><strong>Trạng thái đơn hàng:</strong> 
+      
     @php
         $status = $order->status->status_name ?? '---';
         $statusClass = match($status) {
-            'Chưa xác nhận' => 'badge bg-secondary',
+           'Chưa xác nhận' => 'badge bg-secondary',
             'Đã xác nhận' => 'badge bg-primary',
-            'Chưa thanh toán' => 'badge bg-warning text-dark',
-            'Đã thanh toán, chờ xác nhận' => 'badge bg-success',
             'Đang chuẩn bị hàng' => 'badge bg-info text-dark',
             'Đang giao' => 'badge bg-warning text-dark',
             'Đã giao' => 'badge bg-success',
@@ -38,6 +37,18 @@
     @endphp
 
     <span class="{{ $statusClass }}">{{ $status }}</span>
+</p>
+@php
+    $paymentStatus = $order->paymentStatus->status_name ?? '---';
+    $paymentClass = match($paymentStatus) {
+        'Chưa thanh toán' => 'badge bg-warning text-dark',
+        'Đã thanh toán' => 'badge bg-success',
+        default => 'badge bg-light text-dark',
+    };
+@endphp
+
+<p><strong>Trạng thái thanh toán:</strong>
+    <span class="{{ $paymentClass }}">{{ $paymentStatus }}</span>
 </p>
 {{-- Nút hủy đơn chỉ hiển thị nếu chưa xác nhận --}}
 @if($order->status_id == 1)

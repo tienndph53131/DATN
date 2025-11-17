@@ -96,10 +96,21 @@ class OrderController extends Controller
     }
 
     // Cập nhật trạng thái sang Hủy đơn hàng
-    $order->status_id = 11; // 11 = Hủy đơn hàng
+    $order->status_id = 9; // 11 = Hủy đơn hàng
     $order->save();
 
     return back()->with('success', 'Bạn đã hủy đơn hàng thành công.');
+    
 }
+
+// Cập nhật payment_status_id nếu COD và đã nhận hàng
+    public function updatePaymentStatusIfReceived(Order $order)
+    {
+        
+        if ($order->payment_id == 1 && $order->status_id == 7 && $order->payment_status_id != 2) {
+            $order->payment_status_id = 2; // Chuyển sang đã thanh toán
+            $order->save();
+        }
+    }
 
 }
