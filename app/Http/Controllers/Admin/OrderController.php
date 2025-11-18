@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderStatus;
+use App\Models\PaymentStatus;
 use App\Models\OrderStatusLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -37,7 +38,8 @@ class OrderController extends Controller
             ->appends($request->query());
 
         $statuses = OrderStatus::orderBy('id')->get();
-        return view('admin.orders.index', compact('orders', 'statuses'));
+        $paymentStatuses = PaymentStatus::orderBy('id')->get();
+        return view('admin.orders.index', compact('orders', 'statuses', 'paymentStatuses'));
     }
 
     public function show($id)
@@ -57,6 +59,10 @@ class OrderController extends Controller
     {
         $request->validate([
             'status_id' => 'required|integer|exists:order_status,id'
+        ]);
+
+        $request->validate([
+            'payment_status_id' => 'nullable|integer|exists:payment_status,id'
         ]);
 
         $order = Order::findOrFail($id);
@@ -85,6 +91,14 @@ class OrderController extends Controller
         }
 
         $order->status_id = $newStatusId;
+        // handle payment status change if provided
+        $oldPayment = $order->payment_status_id;
+        $newPaymentId = $request->input('payment_status_id');
+
+        if ($newPaymentId !== null && intval($newPaymentId) !== intval($oldPayment)) {
+            $order->payment_status_id = $newPaymentId;
+        }
+
         $order->save();
 
         // create audit log for status change
@@ -96,8 +110,25 @@ class OrderController extends Controller
                 'changed_by' => Auth::id(),
                 'note' => null,
             ]);
+
+            // record a simple note for payment status change as well
+            if ($newPaymentId !== null && intval($newPaymentId) !== intval($oldPayment)) {
+                $oldName = null;
+                $newName = null;
+                try {
+                    $oldName = $oldPayment ? \App\Models\PaymentStatus::find($oldPayment)?->status_name : null;
+                    $newName = \App\Models\PaymentStatus::find($newPaymentId)?->status_name;
+                } catch (\Throwable $_) {}
+
+                OrderStatusLog::create([
+                    'order_id' => $order->id,
+                    'old_status_id' => null,
+                    'new_status_id' => null,
+                    'changed_by' => Auth::id(),
+                    'note' => sprintf('Payment status: "%s" -> "%s"', $oldName ?? ($oldPayment ?: '—'), $newName ?? $newPaymentId),
+                ]);
+            }
         } catch (\Throwable $e) {
-            // do not break the flow if logging fails; but log to laravel log
             logger()->error('Failed to write order status log: ' . $e->getMessage());
         }
 
@@ -120,14 +151,23 @@ class OrderController extends Controller
             default => 'badge bg-light text-dark',
         };
 
+        // reload payment status relation too
+        $order->load('status', 'paymentStatus');
+
         // If AJAX/JSON request, return JSON with new status info
         if ($request->wantsJson() || $request->ajax() || $request->header('Accept') === 'application/json') {
+            $paymentName = $order->paymentStatus->status_name ?? null;
+            $paymentClass = config('payment.status_classes')[$paymentName] ?? 'badge bg-light text-dark';
+
             return response()->json([
                 'order_id' => $order->id,
                 'status_id' => $order->status_id,
                 'status_name' => $statusName,
                 'status_class' => $statusClass,
                 'old_status_id' => $old,
+                'payment_status_id' => $order->payment_status_id,
+                'payment_status_name' => $paymentName,
+                'payment_status_class' => $paymentClass,
             ]);
         }
 

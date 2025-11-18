@@ -75,11 +75,17 @@
 </td>
 
                <td>
-                        @php
-                            $paymentStatus = $order->paymentStatus->status_name ?? '---';
-                            $paymentClass = config('payment.status_classes')[$paymentStatus] ?? 'badge bg-light text-dark';
-                        @endphp
-                        <span class="{{ $paymentClass }}">{{ $paymentStatus }}</span>
+                        <form method="POST" action="{{ route('orders.update', $order->id) }}" class="ajax-payment-form d-flex align-items-center">
+                            @csrf
+                            @method('PUT')
+                            <select name="payment_status_id" class="form-select form-select-sm me-2">
+                                <option value="">Chọn TT thanh toán</option>
+                                @foreach($paymentStatuses as $ps)
+                                    <option value="{{ $ps->id }}" {{ $order->payment_status_id == $ps->id ? 'selected' : '' }}>{{ $ps->status_name }}</option>
+                                @endforeach
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">Lưu</button>
+                        </form>
                     </td>
                             <td>
                                 <div class="d-flex">
@@ -240,6 +246,62 @@
                     // cleanup any temporary confirmed flag
                     try { delete form.dataset.confirmed; } catch (e) {}
                 });
+            });
+        });
+
+        // AJAX payment update handler
+        document.querySelectorAll('.ajax-payment-form').forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const action = form.getAttribute('action');
+                const fd = new FormData(form);
+
+                const submitBtn = form.querySelector('button[type="submit"]') || form.querySelector('button');
+                const select = form.querySelector('select[name="payment_status_id"]');
+                if (submitBtn) {
+                    const original = submitBtn.innerHTML;
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+                    // find csrf
+                    const meta = document.querySelector('meta[name="csrf-token"]');
+                    const csrf = meta ? meta.getAttribute('content') : (fd.get('_token') || '');
+
+                    fetch(action, {
+                        method: 'PUT',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrf
+                        },
+                        body: fd,
+                    }).then(res => {
+                        if (!res.ok) {
+                            if (res.status === 422) return res.json().then(j => Promise.reject(j));
+                            return Promise.reject({ message: 'Network error' });
+                        }
+                        return res.json();
+                    }).then(json => {
+                        if (json && json.order_id) {
+                            const row = document.querySelector('tr[data-order-id="' + json.order_id + '"]');
+                            if (row) {
+                                // update payment badge if present
+                                const paymentCell = row.querySelector('td:nth-child(7)');
+                                if (paymentCell && json.payment_status_name) {
+                                    paymentCell.innerHTML = '<span class="' + json.payment_status_class + '">' + (json.payment_status_name || '---') + '</span>';
+                                }
+                            }
+                            if (window.showToast) window.showToast('Cập nhật trạng thái thanh toán thành công', 'success');
+                        }
+                    }).catch(err => {
+                        console.error('Payment update error', err);
+                        const msg = (err && err.message) || (err && err.errors && err.errors.payment_status_id && err.errors.payment_status_id[0]) || 'Không thể cập nhật trạng thái thanh toán';
+                        if (window.showToast) window.showToast(msg, 'danger');
+                    }).finally(() => {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = original;
+                        }
+                    });
+                }
             });
         });
     </script>
