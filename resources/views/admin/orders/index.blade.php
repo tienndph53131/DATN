@@ -118,6 +118,20 @@
         })();
 
         // AJAX status update handler: update in-place without page reload
+        let __pendingConfirmForm = null;
+        let __pendingConfirmModal = null;
+
+        document.getElementById('confirmActionBtn').addEventListener('click', function () {
+            if (!__pendingConfirmForm) return;
+            // mark confirmed and re-submit
+            __pendingConfirmForm.dataset.confirmed = '1';
+            if (__pendingConfirmModal) __pendingConfirmModal.hide();
+            // re-dispatch submit event
+            __pendingConfirmForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+            __pendingConfirmForm = null;
+            __pendingConfirmModal = null;
+        });
+
         document.querySelectorAll('.ajax-status-form').forEach(form => {
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
@@ -143,10 +157,18 @@
                     return;
                 }
 
-                // confirm for cancellation or destructive transitions
+                // confirm for cancellation or destructive transitions (use modal)
                 const selectedText = select ? select.options[select.selectedIndex].text : '';
                 if (selectedText && selectedText.toLowerCase().includes('hủy')) {
-                    if (!confirm('Bạn có chắc muốn hủy đơn hàng này? Hành động này có thể không hoàn tác.')) {
+                    // if not already confirmed, show modal and defer submission
+                    if (form.dataset.confirmed !== '1') {
+                        __pendingConfirmForm = form;
+                        const orderCode = row ? (row.querySelector('td') ? row.querySelector('td').textContent.trim() : '') : '';
+                        const body = document.getElementById('confirmModalBody');
+                        if (body) body.textContent = `Bạn có chắc muốn hủy đơn ${orderCode}? Hành động này có thể không hoàn tác.`;
+                        const modalEl = new bootstrap.Modal(document.getElementById('confirmActionModal'));
+                        modalEl.show();
+                        __pendingConfirmModal = modalEl;
                         return;
                     }
                 }
@@ -214,8 +236,28 @@
                         if (originalBtnHtml !== null) submitBtn.innerHTML = originalBtnHtml;
                     }
                     if (select) select.disabled = false;
+                    // cleanup any temporary confirmed flag
+                    try { delete form.dataset.confirmed; } catch (e) {}
                 });
             });
         });
     </script>
+    <!-- Confirmation Modal (Bootstrap) -->
+    <div class="modal fade" id="confirmActionModal" tabindex="-1" aria-labelledby="confirmActionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmActionModalLabel">Xác nhận hành động</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="confirmModalBody">
+                    Bạn có chắc chắn muốn thực hiện hành động này?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger" id="confirmActionBtn">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
