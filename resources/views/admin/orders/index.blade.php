@@ -151,10 +151,13 @@
                                   }
                                   row.setAttribute('data-status-id', json.status_id);
                               }
+                              if (window.showToast) window.showToast('Cập nhật trạng thái thành công', 'success');
+                          } else {
+                              if (window.showToast) window.showToast('Không nhận được phản hồi hợp lệ', 'warning');
                           }
                       }).catch(err => {
                           console.error('Update error', err);
-                          alert('Không thể cập nhật trạng thái.');
+                          if (window.showToast) window.showToast('Không thể cập nhật trạng thái', 'danger');
                       });
                 });
             });
