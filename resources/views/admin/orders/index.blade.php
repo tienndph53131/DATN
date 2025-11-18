@@ -91,7 +91,7 @@
                                                 <option value="{{ $s->id }}" {{ $order->status_id == $s->id ? 'selected' : '' }}>{{ $s->status_name }}</option>
                                             @endforeach
                                         </select>
-                                        <button class="btn btn-sm btn-primary">Cập nhật</button>
+                                        <button type="submit" class="btn btn-sm btn-primary">Cập nhật</button>
                                     </form>
                                     <a href="{{ route('orders.show', $order->id) }}" class="btn btn-sm btn-outline-primary">Chi tiết</a>
                                 </div>
@@ -127,7 +127,37 @@
                 // controls
                 const submitBtn = form.querySelector('button[type="submit"]') || form.querySelector('button');
                 const select = form.querySelector('select[name="status_id"]');
-                if (submitBtn) submitBtn.disabled = true;
+                const row = form.closest('tr');
+                const currentStatusId = row ? row.getAttribute('data-status-id') : null;
+
+                // if nothing selected
+                const selectedVal = select ? select.value : '';
+                if (!selectedVal) {
+                    if (window.showToast) window.showToast('Vui lòng chọn trạng thái trước khi cập nhật', 'warning');
+                    return;
+                }
+
+                // prevent no-op updates
+                if (currentStatusId && String(currentStatusId) === String(selectedVal)) {
+                    if (window.showToast) window.showToast('Trạng thái không thay đổi', 'info');
+                    return;
+                }
+
+                // confirm for cancellation or destructive transitions
+                const selectedText = select ? select.options[select.selectedIndex].text : '';
+                if (selectedText && selectedText.toLowerCase().includes('hủy')) {
+                    if (!confirm('Bạn có chắc muốn hủy đơn hàng này? Hành động này có thể không hoàn tác.')) {
+                        return;
+                    }
+                }
+
+                // disable controls & show spinner
+                let originalBtnHtml = null;
+                if (submitBtn) {
+                    originalBtnHtml = submitBtn.innerHTML;
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang...';
+                }
                 if (select) select.disabled = true;
 
                 // find csrf token
@@ -179,7 +209,10 @@
                         if (window.showToast) window.showToast('Không thể cập nhật trạng thái', 'danger');
                     }
                 }).finally(() => {
-                    if (submitBtn) submitBtn.disabled = false;
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        if (originalBtnHtml !== null) submitBtn.innerHTML = originalBtnHtml;
+                    }
                     if (select) select.disabled = false;
                 });
             });
