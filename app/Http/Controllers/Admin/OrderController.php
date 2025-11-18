@@ -44,7 +44,13 @@ class OrderController extends Controller
     {
         $order = Order::with(['details.productVariant.product', 'account', 'address', 'payment', 'status', 'paymentStatus'])->findOrFail($id);
         $statuses = OrderStatus::orderBy('id')->get();
-        return view('admin.orders.show', compact('order', 'statuses'));
+        // load status change logs
+        $logs = OrderStatusLog::with(['oldStatus', 'newStatus', 'user'])
+            ->where('order_id', $order->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('admin.orders.show', compact('order', 'statuses', 'logs'));
     }
 
     public function update(Request $request, $id)
