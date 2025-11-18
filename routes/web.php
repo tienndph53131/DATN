@@ -32,6 +32,7 @@ Route::prefix('admin')->group(function () {
    Route::resource('products', ProductController::class);
   Route::resource('attribute_values', AttributeValueController::class);
     Route::resource('comments', CommentController::class);
+    Route::resource('accounts', AccountController::class)->except(['create','store']);
     Route::resource('orders', AdminOrderController::class);
 });
 // Admin bulk actions for comments
