@@ -8,8 +8,16 @@
         </div>
 
         <div class="row mb-3">
-            <div class="col-md-6 mb-2">
+            <div class="col-md-4 mb-2">
                 <input type="text" class="form-control" placeholder="Tìm kiếm theo mã đơn, khách hàng..." id="searchInput">
+            </div>
+            <div class="col-md-4 mb-2">
+                <select id="statusFilter" class="form-select">
+                    <option value="">Tất cả trạng thái</option>
+                    @foreach($statuses as $s)
+                        <option value="{{ $s->id }}">{{ $s->status_name }}</option>
+                    @endforeach
+                </select>
             </div>
         </div>
 
@@ -29,7 +37,7 @@
                 </thead>
                 <tbody>
                     @foreach($orders as $order)
-                        <tr>
+                        <tr data-status-id="{{ $order->status_id }}">
                             <td>{{ $order->order_code }}</td>
                             <td>{{ $order->account->name ?? 'Khách lạ' }}</td>
                             <td>
@@ -46,6 +54,7 @@
         $status = $order->status->status_name ?? 'Chưa xác định';
         $statusClass = match($status) {
             'Chưa xác nhận' => 'badge bg-secondary',
+            'Đã thanh toán, chờ xác nhận' => 'badge bg-primary',
             'Đã xác nhận' => 'badge bg-primary',
             'Đang chuẩn bị hàng' => 'badge bg-info text-dark',
             'Đang giao' => 'badge bg-warning text-dark',
@@ -67,8 +76,20 @@
                         </span>
                     </td>
                             <td>
-                                <a href="#" class="btn btn-sm btn-primary">sửa</a>
-                                <a href="#" class="btn btn-sm btn-primary">Chi tiết</a>
+                                <div class="d-flex">
+                                    <form method="POST" action="{{ route('orders.update', $order->id) }}" class="d-flex me-2">
+                                        @csrf
+                                        @method('PUT')
+                                        <select name="status_id" class="form-select form-select-sm me-2">
+                                            <option value="">Chọn trạng thái</option>
+                                            @foreach($statuses as $s)
+                                                <option value="{{ $s->id }}" {{ $order->status_id == $s->id ? 'selected' : '' }}>{{ $s->status_name }}</option>
+                                            @endforeach
+                                        </select>
+                                        <button class="btn btn-sm btn-primary">Cập nhật</button>
+                                    </form>
+                                    <a href="{{ route('orders.show', $order->id) }}" class="btn btn-sm btn-outline-primary">Chi tiết</a>
+                                </div>
                             </td>
                         </tr>
                     @endforeach
