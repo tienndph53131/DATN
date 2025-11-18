@@ -39,4 +39,8 @@ class Account extends Authenticatable
 {
     return $this->hasOne(Address::class, 'account_id')->where('is_default', true);
 }
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
 }

@@ -13,14 +13,35 @@ use Illuminate\Support\Facades\DB;
 class ProductController extends Controller
 {
     // Hiển thị danh sách sản phẩm
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::with(['category', 'variants.attributeValues'])
-            ->withSum('variants', 'stock_quantity') //  cộng dồn stock_quantity
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        $query = Product::with(['category', 'variants.attributeValues'])
+            ->withSum('variants', 'stock_quantity') // cộng dồn stock_quantity
+            ->orderBy('created_at', 'desc');
 
-        return view('admin.products.index', compact('products'));
+        //  Tìm kiếm theo tên sản phẩm
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where('name', 'like', "%$search%");
+        }
+
+        //  Tìm kiếm theo danh mục
+        if ($request->filled('category_id')) {
+            $categoryId = $request->input('category_id');
+            $query->where('category_id', $categoryId);
+        }
+        // Tìm kiếm theo trạng thái
+        if ($request->filled('status')) {
+            $status = $request->input('status'); // 1 = còn, 0 = hết
+            $query->where('status', $status);
+        }
+
+
+        $products = $query->paginate(10)->withQueryString(); // giữ query string khi paginate
+
+        $categories = Category::all(); // truyền danh sách categories cho view filter
+
+        return view('admin.products.index', compact('products', 'categories'));
     }
 
     // Form thêm sản phẩm
@@ -89,25 +110,24 @@ class ProductController extends Controller
     {
         $categories = Category::all();
         $attributes = Attribute::with('values')->get();
-        $product->load('variants.attributes.attributeValue'); // load biến thể + thuộc tính
+
+        // Load biến thể + các attribute values
+        $product->load('variants.attributes.attributeValue');
+
         return view('admin.products.edit', compact('product', 'categories', 'attributes'));
     }
-
-    // Cập nhật sản phẩm
     public function update(Request $request, Product $product)
     {
         $request->validate([
             'name' => 'required|max:255',
             'category_id' => 'nullable|exists:categories,id',
-
             'image' => 'nullable|image|mimes:jpg,png,jpeg,webp|max:10048',
-
             'description' => 'nullable|string',
-
             'status' => 'boolean',
             'variants.*.price' => 'nullable|numeric',
-            'variants.*.stock_quantity' => 'nullable|integer|min:0',
-            'variants.*.attributes' => 'nullable|array'
+            'variants.*.stock_quantity' => 'nullable|integer',
+            'variants.*.attributes' => 'nullable|array',
+            'deleted_variants.*' => 'nullable|integer'
         ]);
 
         DB::transaction(function () use ($request, $product) {
@@ -126,29 +146,47 @@ class ProductController extends Controller
 
             $product->update($data);
 
-            // Xóa các biến thể cũ
-            foreach ($product->variants as $variant) {
-                $variant->attributes()->delete();
-                $variant->delete();
+            // Xóa các biến thể bị remove
+            if ($request->deleted_variants ?? false) {
+                foreach ($request->deleted_variants as $delId) {
+                    $v = $product->variants()->find($delId);
+                    if ($v) {
+                        $v->attributes()->delete();
+                        $v->delete();
+                    }
+                }
             }
 
-            // Lưu lại biến thể mới
+            // Lưu / update biến thể
             if ($request->has('variants')) {
                 foreach ($request->variants as $v) {
-                    if (isset($v['stock_quantity']) && $v['stock_quantity'] < 0) {
-                        throw new \Exception('Số lượng không khong hop le!');
-                    }
-                    $variant = $product->variants()->create([
-                        'price' => $v['price'] ?? $product->price,
-                        'stock_quantity' => $v['stock_quantity'] ?? 0,
-                        'status' => 1,
-                    ]);
-
-                    if (!empty($v['attributes'])) {
-                        foreach ($v['attributes'] as $attrValueId) {
-                            $variant->attributes()->create([
-                                'attribute_value_id' => $attrValueId
+                    if (isset($v['id'])) {
+                        // Update biến thể cũ
+                        $variant = $product->variants()->find($v['id']);
+                        if ($variant) {
+                            $variant->update([
+                                'price' => $v['price'] ?? $variant->price,
+                                'stock_quantity' => $v['stock_quantity'] ?? $variant->stock_quantity,
                             ]);
+
+                            // Update attributes
+                            $attrIds = array_filter($v['attributes'] ?? []);
+                            $variant->attributes()->delete();
+                            foreach ($attrIds as $attrId) {
+                                $variant->attributes()->create(['attribute_value_id' => $attrId]);
+                            }
+                        }
+                    } else {
+                        // Tạo biến thể mới
+                        $variant = $product->variants()->create([
+                            'price' => $v['price'] ?? 0,
+                            'stock_quantity' => $v['stock_quantity'] ?? 0,
+                            'status' => 1,
+                        ]);
+
+                        $attrIds = array_filter($v['attributes'] ?? []);
+                        foreach ($attrIds as $attrId) {
+                            $variant->attributes()->create(['attribute_value_id' => $attrId]);
                         }
                     }
                 }
@@ -161,6 +199,11 @@ class ProductController extends Controller
     // Xóa sản phẩm
     public function destroy(Product $product)
     {
+        // Kiểm tra nếu sản phẩm đã có trong đơn hàng
+        if ($product->orderDetails()->exists()) {
+            return redirect()->route('products.index')
+                ->with('error', 'Sản phẩm này đã có đơn hàng, không thể xóa!');
+        }
         DB::transaction(function () use ($product) {
             if ($product->image && File::exists(public_path('uploads/products/' . $product->image))) {
                 File::delete(public_path('uploads/products/' . $product->image));

@@ -20,6 +20,7 @@ class Order extends Model
         'note',
         'payment_id',
         'status_id',
+        'payment_status_id'
     ];
     public function details()
     {
@@ -37,7 +38,13 @@ class Order extends Model
     {
         return $this->belongsTo(Payment::class, 'payment_id');
     }
-    public function status(){
-        return $this->belongsTo(OrderStatus::class,'status_id');
+     public function status()
+    {
+        return $this->belongsTo(OrderStatus::class, 'status_id');
+    }
+    // Quan hệ với PaymentStatus
+    public function paymentStatus()
+    {
+        return $this->belongsTo(PaymentStatus::class, 'payment_status_id', 'id');
     }
 }

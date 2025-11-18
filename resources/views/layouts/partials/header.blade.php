@@ -1,6 +1,8 @@
-<!-- 🌟 Topbar Start -->
-<div class="container-fluid border-bottom">
-    <div class="row bg-light py-2 px-xl-5 align-items-center">
+<!-- 🌟 Topbar + Navbar Sticky Start -->
+<div class="sticky-top" style="z-index: 1040; background-color: #fff;">
+
+    <!-- Topbar trên cùng (FAQs, mạng xã hội) -->
+    <div class="row bg-light py-2 px-xl-5 align-items-center border-bottom">
         <div class="col-lg-6 d-none d-lg-block">
             <div class="d-inline-flex align-items-center">
                 <a class="text-muted small" href="#">FAQs</a>
@@ -20,7 +22,8 @@
         </div>
     </div>
 
-    <div class="row align-items-center py-3 px-xl-5">
+    <!-- Logo + Tìm kiếm + Giỏ hàng -->
+    <div class="row align-items-center py-3 px-xl-5 border-bottom">
         <div class="col-lg-3 d-none d-lg-block">
             <a href="/" class="text-decoration-none">
                 <h1 class="m-0 display-5 font-weight-semi-bold text-dark">
@@ -39,59 +42,51 @@
             </form>
         </div>
 
-       <!-- 🛒 GIỎ HÀNG -->
-@if(Auth::guard('client')->check())
-    @php
-        $user = Auth::guard('client')->user();
-        // Lấy giỏ hàng hoặc tạo mới
-        $cart = $user->cart ?? \App\Models\Cart::firstOrCreate(['account_id' => $user->id]);
-        $cartItems = $cart->details()->with('productVariant.product')->get();
+        <!-- 🛒 Giỏ hàng -->
+        @if(Auth::guard('client')->check())
+            @php
+                $user = Auth::guard('client')->user();
+                $cart = $user->cart ?? \App\Models\Cart::firstOrCreate(['account_id' => $user->id]);
+                $cartItems = $cart->details()->with('productVariant.product')->get();
+                $cartCount = $cartItems->count(); 
+                $cartTotal = $cartItems->sum('amount');
+            @endphp
 
-        $cartCount = $cartItems->count(); 
-        $cartTotal = $cartItems->sum('amount');
-    @endphp
+            <div class="col-lg-3 col-6 text-right">
+                <a href="#" class="btn border position-relative me-2">
+                    <i class="fas fa-heart text-primary"></i>
+                    <span class="badge position-absolute top-0 start-100 translate-middle bg-danger text-white rounded-pill">0</span>
+                </a>
 
-    <div class="col-lg-3 col-6 text-right">
-        <!-- Yêu thích -->
-        <a href="#" class="btn border position-relative me-2">
-            <i class="fas fa-heart text-primary"></i>
-            <span class="badge position-absolute top-0 start-100 translate-middle bg-danger text-white rounded-pill">0</span>
-        </a>
+                <a href="{{ route('cart.index') }}" class="btn border position-relative me-2">
+                    <i class="fas fa-shopping-cart text-primary"></i>
+                    <span class="badge position-absolute top-0 start-100 translate-middle bg-danger text-white rounded-pill">
+                        {{ $cartCount }}
+                    </span>
+                </a>
 
-        <!-- Giỏ hàng -->
-        <a href="{{ route('cart.index') }}" class="btn border position-relative me-2">
-            <i class="fas fa-shopping-cart text-primary"></i>
-            <span class="badge position-absolute top-0 start-100 translate-middle bg-danger text-white rounded-pill">
-                {{ $cartCount }}
-            </span>
-        </a>
-
-        <!-- Hiển thị tổng tiền -->
-        <span class="fw-bold text-dark small">
-            🛒 {{ $cartCount }} SP - {{ number_format($cartTotal, 0, ',', '.') }}₫
-        </span>
+                <span class="fw-bold text-dark small">
+                    🛒 {{ $cartCount }} SP - {{ number_format($cartTotal, 0, ',', '.') }}₫
+                </span>
+            </div>
+        @endif
     </div>
-@endif
 
-<!-- 🌟 Topbar End -->
-
-
-<!-- 🧭 Navbar Start -->
-<div class="container-fluid mb-3">
-    <div class="row border-top px-xl-5">
+    <!-- Navbar + Categories -->
+    <div class="row px-xl-5 py-2">
         <!-- Categories -->
-        <div class="col-lg-3 d-none d-lg-block">
+        <div class="col-lg-3 d-none d-lg-block position-relative">
             <a class="btn d-flex align-items-center justify-content-between bg-primary text-white w-100"
                data-toggle="collapse" href="#navbar-vertical"
-               style="height: 65px; margin-top: -1px; padding: 0 30px;">
+               style="height: 65px; padding: 0 30px;">
                 <h6 class="m-0"><i class="fa fa-list mr-2"></i>Danh mục</h6>
                 <i class="fa fa-angle-down text-dark"></i>
             </a>
 
             <nav id="navbar-vertical"
-                 class="collapse position-absolute navbar navbar-vertical navbar-light align-items-start p-0 
+                 class="collapse navbar navbar-vertical navbar-light align-items-start p-0 
                         border border-top-0 border-bottom-0 bg-white shadow-sm"
-                 style="width: calc(100% - 30px); z-index: 1000; border-radius: 0 0 8px 8px;">
+                 style="width: calc(100% - 30px); z-index: 1050; border-radius: 0 0 8px 8px;">
                 <div class="navbar-nav w-100 overflow-auto" style="max-height: 410px;">
                     @forelse($categories as $category)
                         <a href="{{ url('category/' . $category->id) }}"
@@ -108,9 +103,9 @@
             </nav>
         </div>
 
-        <!-- Navbar -->
+        <!-- Navbar chính -->
         <div class="col-lg-9">
-            <nav class="navbar navbar-expand-lg bg-light navbar-light py-3 py-lg-0 px-0">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light py-3 py-lg-0 px-0">
                 <a href="/" class="text-decoration-none d-block d-lg-none">
                     <h1 class="m-0 display-5 font-weight-semi-bold">
                         <span class="text-primary font-weight-bold border px-3 mr-1">SM</span>Shopper
@@ -123,41 +118,46 @@
                 <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
                     <div class="navbar-nav mr-auto py-0">
                         <a href="/" class="nav-item nav-link {{ request()->is('/') ? 'active text-primary' : '' }}">Trang chủ</a>
-                        <a href="/shop" class="nav-item nav-link {{ request()->is('shop') ? 'active text-primary' : '' }}">Cửa hàng</a>
+                        
                         <a href="/contact" class="nav-item nav-link {{ request()->is('contact') ? 'active text-primary' : '' }}">Liên hệ</a>
                     </div>
 
                     <div class="navbar-nav ml-auto py-0">
-    {{-- Nếu đã đăng nhập --}}
-@if(Auth::guard('client')->check())
-    <li class="nav-item">
-         <a href="{{ route('profile.edit') }}" class="nav-link">
-       👤 {{ Auth::guard('client')->user()->name }}
-    </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link text-danger" href="#" 
-           onclick="event.preventDefault(); document.getElementById('client-logout-form').submit();">
-           Đăng xuất
-        </a>
-        <form id="client-logout-form" action="{{ route('client.logout') }}" method="POST" class="d-none">
-            @csrf
-        </form>
-    </li>
-@else
-    <li class="nav-item">
-        <a class="nav-link" href="{{ route('client.login') }}">Đăng nhập</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="{{ route('client.register') }}">Đăng ký</a>
-    </li>
-@endif
-
-
+                        @if(Auth::guard('client')->check())
+                            <li class="nav-item">
+                                <a href="{{ route('profile.edit') }}" class="nav-link">
+                                    👤 {{ Auth::guard('client')->user()->name }}
+                                </a>
+                            </li>
+                             <li class="nav-item">
+            <a href="{{ route('order.history') }}" class="nav-link">
+                📦 Lịch sử đơn hàng
+            </a>
+        </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-danger" href="#" 
+                                   onclick="event.preventDefault(); document.getElementById('client-logout-form').submit();">
+                                   Đăng xuất
+                                </a>
+                                <form id="client-logout-form" action="{{ route('client.logout') }}" method="POST" class="d-none">
+                                    @csrf
+                                </form>
+                            </li>
+                        @else
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('client.login') }}">Đăng nhập</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('client.register') }}">Đăng ký</a>
+                            </li>
+                        @endif
+                    </div>
                 </div>
             </nav>
         </div>
     </div>
+
 </div>
+<!-- 🌟 Topbar + Navbar Sticky End -->
+
 @include('layouts.partials.banner')
-<!-- 🧭 Navbar End -->

@@ -64,7 +64,7 @@
 <a href="{{ url('/admin/attribute_values') }}" class="{{ request()->is('admin/attribute_values*') ? 'active' : '' }}">
     <i class="fa-solid fa-tag"></i> Giá trị thuộc tính
 </a>
-    <a href="{{ url('/admin/users') }}" class="{{ request()->is('admin/users*') ? 'active' : '' }}"><i class="fa-solid fa-users"></i> Người dùng</a>
+<a href="{{ route('accounts.index') }}" class="{{ request()->routeIs('accounts.*') ? 'active' : '' }}"><i class="fa-solid fa-users"></i> Người dùng</a>
     
      <li><a class="dropdown-item" href="{{ route('comments.index') }}"><i class="fa-solid fa-comments me-2"></i> Quản lý bình luận</a></li>
             <li><hr class="dropdown-divider"></li>

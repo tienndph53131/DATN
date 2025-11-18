@@ -222,7 +222,7 @@
 
         <div class="button-group">
             <a href="{{ route('home') }}" class="btn btn-primary">Tiếp tục mua sắm</a>
-            <a href="#" class="btn btn-secondary">Xem đơn hàng</a>
+            <a href="{{ route('order.history') }}" class="btn btn-secondary">Xem đơn hàng</a>
         </div>
     </div>
 </body>
