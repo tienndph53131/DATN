@@ -28,9 +28,10 @@ return new class extends Migration
             $table->decimal('total', 12, 2)->default(0);
             $table->text('note')->nullable();
             
-            // Liên kết với bảng payment_methods và order_status
+            // Liên kết với bảng payment_methods và order_status, payment_status
             $table->unsignedBigInteger('payment_id')->nullable();
             $table->unsignedBigInteger('status_id')->nullable();
+            $table->unsignedBigInteger('payment_status_id')->default(1);
             $table->timestamps();
 
             // Khóa ngoại
@@ -38,6 +39,7 @@ return new class extends Migration
             $table->foreign('address_id')->references('id')->on('address')->onDelete('set null');
             $table->foreign('payment_id')->references('id')->on('payment_methods')->onDelete('set null');
             $table->foreign('status_id')->references('id')->on('order_status')->onDelete('set null');
+             $table->foreign('payment_status_id')->references('id')->on('payment_status')->onDelete('set null');
         });
     }
 

@@ -1,8 +1,33 @@
 @extends('layouts.admin.admin')
 
-@section('title', 'Danh sách sản phẩm')
+
 
 @section('content')
+
+<form method="GET" action="{{ route('products.index') }}" class="mb-3 d-flex gap-2">
+    <!-- Tìm theo tên -->
+    <input type="text" name="search" value="{{ request('search') }}" placeholder="Tìm theo tên" class="form-control">
+
+    <!-- Chọn danh mục -->
+    <select name="category_id" class="form-select">
+        <option value="">-- Chọn danh mục --</option>
+        @foreach($categories as $category)
+            <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                {{ $category->name }}
+            </option>
+        @endforeach
+    </select>
+
+    <!-- Chọn trạng thái (1 = còn, 0 = hết) -->
+    <select name="status" class="form-select">
+        <option value="">-- Chọn trạng thái --</option>
+        <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Hết hàng </option>
+        <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Còn hàng</option>
+    </select>
+
+    <button class="btn btn-primary">Tìm kiếm</button>
+</form>
+
 <div class="container mt-4">
     <h2>Danh sách sản phẩm</h2>
     <a href="{{ route('products.create') }}" class="btn btn-primary mb-3">+ Thêm sản phẩm</a>
@@ -10,7 +35,9 @@
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
-
+ @if(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
     <table class="table table-bordered">
         <thead>
             <tr>

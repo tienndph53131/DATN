@@ -19,7 +19,6 @@ class OrderDetail extends Model
     {
         return $this->belongsTo(Order::class, 'order_id');
     }
-
     public function productVariant()
     {
         return $this->belongsTo(ProductVariant::class, 'product_variant_id');
@@ -28,5 +27,11 @@ class OrderDetail extends Model
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id');
+    }
+
+    // alias (if some code uses variant())
+    public function variant()
+    {
+        return $this->productVariant();
     }
 }

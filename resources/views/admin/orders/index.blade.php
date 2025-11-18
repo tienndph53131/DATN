@@ -1,44 +1,89 @@
 @extends('layouts.admin.admin')
 
-@section('title', 'Đơn hàng')
-
+@section('title', 'Đơn Hàng')
 @section('content')
-<div class="card">
-    <div class="card-body">
-        <h4 class="card-title">Danh sách đơn hàng</h4>
+    <div class="container-fluid mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 text-dark">Danh Sách Đơn Hàng</h1>
+        </div>
 
-        @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
+        <div class="row mb-3">
+            <div class="col-md-6 mb-2">
+                <input type="text" class="form-control" placeholder="Tìm kiếm theo mã đơn, khách hàng..." id="searchInput">
+            </div>
+        </div>
 
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Mã</th>
-                    <th>Khách hàng</th>
-                    <th>Tổng</th>
-                    <th>Trạng thái</th>
-                    <th>Ngày</th>
-                    <th>Hành động</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($orders as $order)
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle" id="ordersTable">
+                <thead class="table-light">
                     <tr>
-                        <td>{{ $order->order_code }}</td>
-                        <td>{{ optional($order->account)->name ?? 'Khách' }}</td>
-                        <td>{{ number_format($order->total, 0, ',', '.') }}₫</td>
-                        <td>{{ optional($order->status)->status_name ?? '—' }}</td>
-                        <td>{{ $order->created_at->format('d/m/Y H:i') }}</td>
-                        <td>
-                            <a href="{{ route('orders.show', $order->id) }}" class="btn btn-sm btn-primary">Xem</a>
-                        </td>
+                        <th>Mã Đơn</th>
+                        <th>Khách Hàng</th>
+                        <th>Sản Phẩm</th>
+                        <th>Ngày Đặt</th>
+                        <th>Tổng Tiền</th>
+                        <th>Trạng Thái đơn hàng</th>
+                        <th>Trạng Thái Thanh Toán</th>
+                        <th>Hành Động</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach($orders as $order)
+                        <tr>
+                            <td>{{ $order->order_code }}</td>
+                            <td>{{ $order->account->name ?? 'Khách lạ' }}</td>
+                            <td>
+                                <ul class="list-unstyled mb-0">
+                                    @foreach($order->details as $detail)
+                                       {{ $detail->productVariant?->product?->name ?? 'Không tìm thấy sản phẩm' }}
+                                    @endforeach
+                                </ul>
+                            </td>
+                            <td>{{ $order->booking_date }}</td>
+                            <td>{{ number_format($order->total, 0, ',', '.') }}₫</td>
+                           <td>
+    @php
+        $status = $order->status->status_name ?? 'Chưa xác định';
+        $statusClass = match($status) {
+            'Chưa xác nhận' => 'badge bg-secondary',
+            'Đã xác nhận' => 'badge bg-primary',
+            'Đang chuẩn bị hàng' => 'badge bg-info text-dark',
+            'Đang giao' => 'badge bg-warning text-dark',
+            'Đã giao' => 'badge bg-success',
+            'Đã nhận' => 'badge bg-success',
+            'Thành công' => 'badge bg-success',
+            'Hoàn hàng' => 'badge bg-danger',
+            'Hủy đơn hàng' => 'badge bg-dark',
+            default => 'badge bg-light text-dark',
+        };
+    @endphp
+    <span class="{{ $statusClass }}">{{ $status }}</span>
+</td>
 
-        {{ $orders->links() }}
+               <td>
+                        <span class="badge 
+                            {{ $order->paymentStatus && $order->paymentStatus->id == 2 ? 'bg-success' : 'bg-warning' }}">
+                            {{ $order->paymentStatus->status_name ?? '---' }}
+                        </span>
+                    </td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-primary">sửa</a>
+                                <a href="#" class="btn btn-sm btn-primary">Chi tiết</a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
+    <script>
+        document.getElementById('searchInput').addEventListener('keyup', function () {
+            const filter = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#ordersTable tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none'
+            })
+        })
+    </script>
 @endsection

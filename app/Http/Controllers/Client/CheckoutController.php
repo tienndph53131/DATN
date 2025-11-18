@@ -9,9 +9,12 @@ use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderSuccessMail;
 
 class CheckoutController extends Controller
 {
+     
     public function index()
     {
         $account = auth()->user();
@@ -62,6 +65,7 @@ class CheckoutController extends Controller
                 'note' => $request->note ?? null,
                 'payment_id' => $request->payment_id,
                 'status_id' => 1,
+                'payment_status_id' => $request->payment_id == 1 ? 1 : 2, // COD = 1, Online = 2
             ]);
                     foreach ($cartDetails as $item) {
                         DB::table('order_details')->insert([
@@ -111,6 +115,7 @@ class CheckoutController extends Controller
                         'note' => $request->note ?? null,
                         'cart_details' => $cartDetailsArray, // Luu product details thanh toan momo vao session
                         'payment_id' => 2,
+                         
                     ]
                 ]);
                 return $this->momopayment($total);
@@ -229,7 +234,8 @@ class CheckoutController extends Controller
                 'total' => $data['total'],
                 'note' => $data['note'] ?? null,
                 'payment_id' => $data['payment_id'],
-                'status_id' => 2,
+                'status_id' => 1,
+                 'payment_status_id' => 2, // Thanh toán online → đã thanh toán
             ]);
             foreach ($data['cart_details'] as $item) {
     DB::table('order_details')->insert([
@@ -392,7 +398,8 @@ class CheckoutController extends Controller
                     'total' => $data['total'],
                     'note' => $data['note'] ?? null,
                     'payment_id' => $data['payment_id'],
-                    'status_id' => 2,
+                    'status_id' => 1,
+                    'payment_status_id' => 2, // Thanh toán online → đã thanh toán
                 ]);
                 foreach ($data['cart_details'] as $item) {
     DB::table('order_details')->insert([
@@ -428,4 +435,5 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Thanh toán thất bại');
         }
     }
+   
 }

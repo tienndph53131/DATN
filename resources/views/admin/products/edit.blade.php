@@ -26,9 +26,6 @@
         </select>
     </div>
 
-
-   
-
     <div class="mb-3">
         <label>Ảnh sản phẩm</label>
         <input type="file" name="image" class="form-control">
@@ -37,11 +34,11 @@
         @endif
     </div>
 
-    
-<div class="mb-3">
-    <label>Mô tả sản phẩm</label>
-    <textarea name="description" class="form-control" rows="4">{{ old('description', $product->description) }}</textarea>
-</div>
+    <div class="mb-3">
+        <label>Mô tả sản phẩm</label>
+        <textarea name="description" class="form-control" rows="4">{{ old('description', $product->description) }}</textarea>
+    </div>
+
     <div class="mb-3">
         <label>Trạng thái</label>
         <select name="status" class="form-control">
@@ -62,11 +59,14 @@
     <div id="variants">
         {{-- Biến thể hiện có --}}
         @foreach($product->variants as $i => $variant)
-        <div class="variant-item border p-3 mb-2 rounded">
+        <div class="variant-item border p-3 mb-2 rounded" data-variant-id="{{ $variant->id }}">
             <div class="d-flex justify-content-between align-items-center">
                 <h6 class="mb-0">Biến thể #{{ $i + 1 }}</h6>
                 <button type="button" class="btn btn-danger btn-sm remove-variant">Xóa</button>
             </div>
+
+            {{-- ID ẩn --}}
+            <input type="hidden" name="variants[{{ $i }}][id]" value="{{ $variant->id }}">
 
             <div class="row mt-2">
                 <div class="col-md-3 mb-2">
@@ -118,18 +118,8 @@ document.getElementById('generate-variants').addEventListener('click', function(
         return;
     }
 
-    const colorOptions = `
-        <option value="">Chọn màu</option>
-        @foreach($attributes->where('name', 'Màu sắc')->first()->values ?? [] as $val)
-            <option value="{{ $val->id }}">{{ $val->value }}</option>
-        @endforeach
-    `;
-    const sizeOptions = `
-        <option value="">Chọn kích cỡ</option>
-        @foreach($attributes->where('name', 'Kích cỡ')->first()->values ?? [] as $val)
-            <option value="{{ $val->id }}">{{ $val->value }}</option>
-        @endforeach
-    `;
+    const colorOptions = `@foreach($attributes->where('name', 'Màu sắc')->first()->values ?? [] as $val)<option value="{{ $val->id }}">{{ $val->value }}</option>@endforeach`;
+    const sizeOptions = `@foreach($attributes->where('name', 'Kích cỡ')->first()->values ?? [] as $val)<option value="{{ $val->id }}">{{ $val->value }}</option>@endforeach`;
 
     for (let i = 0; i < count; i++) {
         const index = currentCount + i;
@@ -151,12 +141,14 @@ document.getElementById('generate-variants').addEventListener('click', function(
 
                     <div class="col-md-3 mb-2">
                         <select name="variants[${index}][attributes][color]" class="form-control">
+                            <option value="">Chọn màu</option>
                             ${colorOptions}
                         </select>
                     </div>
 
                     <div class="col-md-3 mb-2">
                         <select name="variants[${index}][attributes][size]" class="form-control">
+                            <option value="">Chọn kích cỡ</option>
                             ${sizeOptions}
                         </select>
                     </div>
@@ -172,14 +164,24 @@ document.getElementById('generate-variants').addEventListener('click', function(
 // Xóa biến thể
 document.addEventListener('click', function(e) {
     if (e.target.classList.contains('remove-variant')) {
-        e.target.closest('.variant-item').remove();
+        const item = e.target.closest('.variant-item');
+        const hiddenId = item.querySelector('input[name*="[id]"]');
+        if(hiddenId) {
+            const deletedInput = document.createElement('input');
+            deletedInput.type = 'hidden';
+            deletedInput.name = 'deleted_variants[]';
+            deletedInput.value = hiddenId.value;
+            document.querySelector('form').appendChild(deletedInput);
+        }
+        item.remove();
+
         document.querySelectorAll('.variant-item').forEach((item, idx) => {
             item.querySelector('h6').textContent = `Biến thể #${idx + 1}`;
         });
     }
 });
 
-//  Kiểm tra trước khi submit form
+// Kiểm tra trước khi submit form
 document.querySelector('form').addEventListener('submit', function(e) {
     const variants = document.querySelectorAll('.variant-item');
     if (variants.length === 0) {
@@ -202,18 +204,13 @@ document.querySelector('form').addEventListener('submit', function(e) {
         const color = colorSelect.value;
         const size = sizeSelect.value;
 
-        // Reset viền trước khi kiểm tra
         item.querySelectorAll('input, select').forEach(el => el.style.border = '');
 
-        //  Kiểm tra thiếu thông tin
         if (!price || !stock || !color || !size) {
             hasError = true;
-            item.querySelectorAll('input, select').forEach(el => {
-                if (!el.value) el.style.border = '2px solid red';
-            });
+            item.querySelectorAll('input, select').forEach(el => { if (!el.value) el.style.border = '2px solid red'; });
         }
 
-        //  Kiểm tra giá và số lượng nhỏ hơn 0
         if (parseFloat(price) < 0) {
             hasError = true;
             priceInput.style.border = '2px solid red';
@@ -226,7 +223,6 @@ document.querySelector('form').addEventListener('submit', function(e) {
             alert('Số lượng không được nhỏ hơn 0!');
         }
 
-        //  Kiểm tra trùng lặp (nếu đủ thông tin)
         if (color && size) {
             const key = `${color}-${size}`;
             if (seen.has(key)) {
@@ -238,12 +234,8 @@ document.querySelector('form').addEventListener('submit', function(e) {
         }
     });
 
-    if (hasError) {
-        e.preventDefault();
-    }
+    if (hasError) e.preventDefault();
 });
 </script>
-
-
 
 @endsection

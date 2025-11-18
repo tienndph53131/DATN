@@ -65,8 +65,15 @@ class AuthController extends Controller
             'email.required' => 'Vui lòng nhập email.',
             'password.required' => 'Vui lòng nhập mật khẩu.',
         ]);
+         // Thêm điều kiện status = 1
+    $credentials = [
+        'email' => $request->email,
+        'password' => $request->password,
+        'status' => 1, // chỉ cho phép tài khoản đang hoạt động
+    ];
 
-        $credentials = $request->only('email', 'password');
+
+       
 
         if (Auth::guard('client')->attempt($credentials)) {
             $request->session()->regenerate();
@@ -83,7 +90,7 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'Email hoặc mật khẩu không chính xác.',
+            'email' => 'Email hoặc mật khẩu không chính xác hoặc tài khoản đã bị vô hiệu hóa.',
         ])->onlyInput('email');
     }
 
