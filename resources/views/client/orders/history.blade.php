@@ -18,7 +18,6 @@
                 <th>Tổng tiền</th>
                  <th>Phương thức thanh toán</th>
                 <th>Trạng thái đơn hàng</th>
-                <th>Trạng thái thanh toán</th>
                 <th>Chi tiết</th>
             </tr>
             </thead>
@@ -33,13 +32,7 @@
                     <td>
                         <span class="badge bg-primary">{{ $order->status->status_name ?? '---' }}</span>
                     </td>
-                    <td>
-                        @php
-                            $paymentStatus = $order->paymentStatus->status_name ?? '---';
-                            $paymentClass = config('payment.status_classes')[$paymentStatus] ?? 'badge bg-light text-dark';
-                        @endphp
-                        <span class="{{ $paymentClass }}">{{ $paymentStatus }}</span>
-                    </td>
+                    <!-- payment status hidden for client -->
                     <td>
                         <a href="{{ route('order.history.detail', $order->order_code) }}"
                            class="btn btn-sm btn-info">Xem</a>

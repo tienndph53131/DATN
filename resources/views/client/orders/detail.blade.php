@@ -38,14 +38,7 @@
 
     <span class="{{ $statusClass }}">{{ $status }}</span>
 </p>
-@php
-    $paymentStatus = $order->paymentStatus->status_name ?? '---';
-    $paymentClass = config('payment.status_classes')[$paymentStatus] ?? 'badge bg-light text-dark';
-@endphp
-
-<p><strong>Trạng thái thanh toán:</strong>
-    <span class="{{ $paymentClass }}">{{ $paymentStatus }}</span>
-</p>
+<!-- payment status hidden for client detail -->
 {{-- Nút hủy đơn chỉ hiển thị nếu chưa xác nhận --}}
 @if($order->status_id == 1)
     <form action="{{ route('order.cancel', $order->order_code) }}" method="POST" class="mt-2">
