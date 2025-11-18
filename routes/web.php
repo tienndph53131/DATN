@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\AttributeValueController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\OrderStatusController;
 use App\Http\Controllers\Admin\CommentController;
 use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Client\HomeController;
@@ -34,8 +35,9 @@ Route::prefix('admin')->group(function () {
     Route::resource('comments', CommentController::class);
     Route::resource('accounts', AccountController::class)->except(['create','store']);
     Route::resource('orders', AdminOrderController::class);
+    Route::resource('order-statuses', OrderStatusController::class);
     // Return-request features removed
-    Route::get('notifications/{id}/read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('admin.notifications.read');
+    // Route::get('notifications/{id}/read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('admin.notifications.read');
     // Return-request routes removed
 });
 // Admin bulk actions for comments

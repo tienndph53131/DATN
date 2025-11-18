@@ -106,10 +106,13 @@ class OrderController extends Controller
 // Cập nhật payment_status_id nếu COD và đã nhận hàng
     public function updatePaymentStatusIfReceived(Order $order)
     {
-        
         if ($order->payment_id == 1 && $order->status_id == 7 && $order->payment_status_id != 2) {
-            $order->payment_status_id = 2; // Chuyển sang đã thanh toán
-            $order->save();
+            $paymentService = new \App\Services\PaymentStatusService();
+            $paidId = $paymentService->getPaidId();
+            if ($paidId) {
+                $order->payment_status_id = $paidId;
+                $order->save();
+            }
         }
     }
 
