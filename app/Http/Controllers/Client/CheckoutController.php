@@ -63,25 +63,25 @@ class CheckoutController extends Controller
                 'payment_id' => $request->payment_id,
                 'status_id' => 1,
             ]);
-            foreach ($cartDetails as $item) {
-    DB::table('order_details')->insert([
-        'order_id' => $order->id,
-        'product_variant_id' => $item->product_variant_id,
-        'product_id' => $item->ProductVariant->product_id,
-        'quantity' => $item->quantity,
-        'price' => $item->price,
-        'amount' => $item->amount,
-    ]);
+                    foreach ($cartDetails as $item) {
+                        DB::table('order_details')->insert([
+                            'order_id' => $order->id,
+                            'product_variant_id' => $item->product_variant_id,
+                            'product_id' => $item->productVariant->product_id,
+                            'quantity' => $item->quantity,
+                            'price' => $item->price,
+                            'amount' => $item->amount,
+                        ]);
 
-    // Giảm tồn kho (stock_quantity)
-    $variant = $item->productVariant;
+                        // Giảm tồn kho (stock_quantity)
+                        $variant = $item->productVariant;
 
-    if (!$variant || $variant->stock_quantity < $item->quantity) {
-        throw new \Exception('Sản phẩm "' . $variant->product->name . '" không đủ tồn kho.');
-    }
+                        if (!$variant || $variant->stock_quantity < $item->quantity) {
+                            throw new \Exception('Sản phẩm "' . ($variant?->product->name ?? 'Không xác định') . '" không đủ tồn kho.');
+                        }
 
-    $variant->decrement('stock_quantity', $item->quantity);
-}
+                        $variant->decrement('stock_quantity', $item->quantity);
+                    }
 
             if ($request->payment_id == 1) {
                 $cart->details()->delete();
@@ -92,7 +92,7 @@ class CheckoutController extends Controller
             $cartDetailsArray = $cartDetails->map(function ($item) {
                 return [
                     'product_variant_id' => $item->product_variant_id,
-                    'product_id' => $item->ProductVariant->product_id,
+                    'product_id' => $item->productVariant->product_id,
                     'quantity' => $item->quantity,
                     'price' => $item->price,
                     'amount' => $item->amount,

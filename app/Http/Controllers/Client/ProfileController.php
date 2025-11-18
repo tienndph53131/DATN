@@ -12,11 +12,11 @@ use Illuminate\Support\Facades\Http;
 
 class ProfileController extends Controller
 {
-    protected string $ghnToken;
+    protected string $ghnToken = '';
 
     public function __construct()
     {
-        $this->ghnToken = env('GHN_TOKEN'); // Token GHN của bạn
+        $this->ghnToken = env('GHN_TOKEN', ''); // Token GHN của bạn (safely default to empty string)
     }
 
     /**

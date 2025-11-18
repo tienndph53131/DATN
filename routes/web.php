@@ -21,6 +21,7 @@ use App\Http\Controllers\Client\CartController;
 use App\Http\Controllers\Client\AuthController;
 use App\Http\Controllers\Client\ProfileController;
 use App\Http\Controllers\Admin\CommentController;
+use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Client\CheckoutController;
  
 Route::prefix('admin')->group(function () {
@@ -28,6 +29,7 @@ Route::prefix('admin')->group(function () {
    Route::resource('products', ProductController::class);
   Route::resource('attribute_values', AttributeValueController::class);
   Route::resource('comments', CommentController::class);
+    Route::resource('orders', OrderController::class);
 
 });
 // Admin bulk actions for comments
