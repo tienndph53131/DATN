@@ -101,6 +101,28 @@ class OrderController extends Controller
 
         $order->save();
 
+        // If the order reached a delivered/received/complete status, mark payment as paid
+        $deliveredStatuses = ['Đã giao', 'Đã nhận', 'Thành công'];
+        $toNameForAuto = $toName ?? ($order->status->status_name ?? null);
+        if ($toNameForAuto && in_array($toNameForAuto, $deliveredStatuses, true)) {
+            if ($order->payment_status_id != 2) {
+                $order->payment_status_id = 2; // Đã thanh toán
+                $order->save();
+                // Audit note for automatic payment mark
+                try {
+                    OrderStatusLog::create([
+                        'order_id' => $order->id,
+                        'old_status_id' => null,
+                        'new_status_id' => null,
+                        'changed_by' => null,
+                        'note' => sprintf('Auto-mark payment as "Đã thanh toán" because order status is "%s"', $toNameForAuto),
+                    ]);
+                } catch (\Throwable $_e) {
+                    logger()->error('Failed to write auto payment status log: ' . $_e->getMessage());
+                }
+            }
+        }
+
         // create audit log for status change
         try {
             OrderStatusLog::create([
