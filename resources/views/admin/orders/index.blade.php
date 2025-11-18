@@ -103,16 +103,11 @@
         </div>
     </div>
     <script>
-        document.getElementById('searchInput').addEventListener('keyup', function () {
-            const filter = this.value.toLowerCase();
-            const rows = document.querySelectorAll('#ordersTable tbody tr');
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(filter) ? '' : 'none'
-            })
-        })
-            // Client-side fallback search (still available)
-            document.getElementById('searchInput').addEventListener('keyup', function () {
+        // Client-side fallback search
+        (function () {
+            const input = document.getElementById('searchInput');
+            if (!input) return;
+            input.addEventListener('keyup', function () {
                 const filter = this.value.toLowerCase();
                 const rows = document.querySelectorAll('#ordersTable tbody tr');
                 rows.forEach(row => {
@@ -120,46 +115,74 @@
                     row.style.display = text.includes(filter) ? '' : 'none';
                 });
             });
+        })();
 
-            // AJAX status update handler
-            document.querySelectorAll('.ajax-status-form').forEach(form => {
-                form.addEventListener('submit', function (e) {
-                    e.preventDefault();
-                    const action = form.getAttribute('action');
-                    const fd = new FormData(form);
-                    // find csrf token
-                    let csrf = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : (fd.get('_token') || '');
-                    // Determine method override
-                    const method = fd.get('_method') || 'POST';
+        // AJAX status update handler: update in-place without page reload
+        document.querySelectorAll('.ajax-status-form').forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const action = form.getAttribute('action');
+                const fd = new FormData(form);
 
-                    fetch(action, {
-                        method: method === 'PUT' ? 'PUT' : method,
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': csrf
-                        },
-                        body: fd,
-                    }).then(res => res.json())
-                      .then(json => {
-                          if (json && json.order_id) {
-                              const row = document.querySelector('tr[data-order-id="' + json.order_id + '"]');
-                              if (row) {
-                                  const badge = row.querySelector('.order-status-badge');
-                                  if (badge) {
-                                      badge.className = json.status_class + ' order-status-badge';
-                                      badge.textContent = json.status_name;
-                                  }
-                                  row.setAttribute('data-status-id', json.status_id);
-                              }
-                              if (window.showToast) window.showToast('Cập nhật trạng thái thành công', 'success');
-                          } else {
-                              if (window.showToast) window.showToast('Không nhận được phản hồi hợp lệ', 'warning');
-                          }
-                      }).catch(err => {
-                          console.error('Update error', err);
-                          if (window.showToast) window.showToast('Không thể cập nhật trạng thái', 'danger');
-                      });
+                // controls
+                const submitBtn = form.querySelector('button[type="submit"]') || form.querySelector('button');
+                const select = form.querySelector('select[name="status_id"]');
+                if (submitBtn) submitBtn.disabled = true;
+                if (select) select.disabled = true;
+
+                // find csrf token
+                const meta = document.querySelector('meta[name="csrf-token"]');
+                const csrf = meta ? meta.getAttribute('content') : (fd.get('_token') || '');
+
+                // Determine method override (use actual method when possible)
+                const method = fd.get('_method') || 'POST';
+
+                fetch(action, {
+                    method: (method === 'PUT' ? 'PUT' : method),
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrf
+                    },
+                    body: fd,
+                }).then(res => {
+                    if (!res.ok) {
+                        if (res.status === 422) {
+                            return res.json().then(jsonErr => {
+                                const msg = jsonErr.message || (jsonErr.errors && jsonErr.errors.status_id && jsonErr.errors.status_id[0]) || 'Chuyển trạng thái không hợp lệ';
+                                if (window.showToast) window.showToast(msg, 'danger');
+                                throw new Error('validation');
+                            });
+                        }
+                        throw new Error('network');
+                    }
+                    return res.json();
+                }).then(json => {
+                    if (json && json.order_id) {
+                        const row = document.querySelector('tr[data-order-id="' + json.order_id + '"]');
+                        if (row) {
+                            const badge = row.querySelector('.order-status-badge');
+                            if (badge) {
+                                badge.className = json.status_class + ' order-status-badge';
+                                badge.textContent = json.status_name;
+                            }
+                            row.setAttribute('data-status-id', json.status_id);
+                        }
+                        if (window.showToast) window.showToast('Cập nhật trạng thái thành công', 'success');
+                    } else {
+                        if (window.showToast) window.showToast('Không nhận được phản hồi hợp lệ', 'warning');
+                    }
+                }).catch(err => {
+                    if (err.message === 'validation') {
+                        // already shown toast
+                    } else {
+                        console.error('Update error', err);
+                        if (window.showToast) window.showToast('Không thể cập nhật trạng thái', 'danger');
+                    }
+                }).finally(() => {
+                    if (submitBtn) submitBtn.disabled = false;
+                    if (select) select.disabled = false;
                 });
             });
+        });
     </script>
 @endsection

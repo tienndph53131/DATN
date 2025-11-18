@@ -53,7 +53,30 @@ class OrderController extends Controller
 
         $order = Order::findOrFail($id);
         $old = $order->status_id;
-        $order->status_id = $request->input('status_id');
+        $newStatusId = $request->input('status_id');
+
+        // Enforce transition rules from config/order.php
+        $fromName = $order->status->status_name ?? null;
+        $toStatus = $newStatusId ? OrderStatus::find($newStatusId) : null;
+        $toName = $toStatus->status_name ?? null;
+
+        $transitions = config('order.status_transitions', []);
+        $allowed = true; // allow by default
+        if ($fromName && array_key_exists($fromName, $transitions)) {
+            $allowedList = $transitions[$fromName] ?? [];
+            // if allowed list is empty => no further transitions allowed
+            $allowed = in_array($toName, $allowedList, true);
+        }
+
+        if (! $allowed) {
+            $msg = 'Chuyển trạng thái từ "' . ($fromName ?? '—') . '" sang "' . ($toName ?? '—') . '" không được phép.';
+            if ($request->wantsJson() || $request->ajax() || $request->header('Accept') === 'application/json') {
+                return response()->json(['message' => $msg], 422);
+            }
+            return redirect()->back()->withErrors(['status_id' => $msg]);
+        }
+
+        $order->status_id = $newStatusId;
         $order->save();
 
         // reload status relation
