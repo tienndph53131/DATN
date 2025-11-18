@@ -48,7 +48,7 @@ class OrderController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'status_id' => 'nullable|integer|exists:order_status,id'
+            'status_id' => 'required|integer|exists:order_status,id'
         ]);
 
         $order = Order::findOrFail($id);
