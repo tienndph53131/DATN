@@ -39,6 +39,12 @@ class Order extends Model
         return $this->belongsTo(OrderStatus::class, 'status_id');
     }
 
+    // Relation to payment method (payment_methods table)
+    public function payment()
+    {
+        return $this->belongsTo(Payment::class, 'payment_id');
+    }
+
     // Quan hệ với PaymentStatus (nếu tồn tại)
     public function paymentStatus()
     {

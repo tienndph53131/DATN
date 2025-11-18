@@ -88,7 +88,13 @@
                                         </select>
                                         <button type="submit" class="btn btn-sm btn-primary">Cập nhật</button>
                                     </form>
-                                    <a href="{{ route('orders.show', $order->id) }}" class="btn btn-sm btn-outline-primary">Chi tiết</a>
+                                    <a href="{{ route('orders.show', $order->id) }}" class="btn btn-sm btn-outline-primary me-2">Chi tiết</a>
+                                    @php
+                                        $returnStatus = $statuses->firstWhere('status_name', 'Hoàn hàng');
+                                    @endphp
+                                    @if($returnStatus)
+                                        <button class="btn btn-sm btn-danger mark-return-btn" data-order-id="{{ $order->id }}" data-status-id="{{ $returnStatus->id }}">Hoàn hàng</button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -234,6 +240,31 @@
                     // cleanup any temporary confirmed flag
                     try { delete form.dataset.confirmed; } catch (e) {}
                 });
+            });
+        });
+
+        // Quick 'Hoàn hàng' button handler
+        document.querySelectorAll('.mark-return-btn').forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const orderId = this.getAttribute('data-order-id');
+                const statusId = this.getAttribute('data-status-id');
+                const row = document.querySelector('tr[data-order-id="' + orderId + '"]');
+                if (!row) return;
+                const form = row.querySelector('.ajax-status-form');
+                if (!form) return;
+                const select = form.querySelector('select[name="status_id"]');
+                if (!select) return;
+                // set selected value and ask for confirmation
+                select.value = statusId;
+                // show modal to confirm return/refund
+                __pendingConfirmForm = form;
+                const orderCode = row ? (row.querySelector('td') ? row.querySelector('td').textContent.trim() : '') : '';
+                const body = document.getElementById('confirmModalBody');
+                if (body) body.textContent = `Bạn có chắc muốn hoàn hàng và hoàn tiền cho đơn ${orderCode}?`;
+                const modalEl = new bootstrap.Modal(document.getElementById('confirmActionModal'));
+                modalEl.show();
+                __pendingConfirmModal = modalEl;
             });
         });
 

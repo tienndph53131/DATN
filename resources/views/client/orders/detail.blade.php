@@ -51,6 +51,7 @@
     </div>
 
     <h5>Danh sách sản phẩm</h5>
+    {{-- Return request feature removed --}}
     <table class="table table-bordered align-middle">
         <thead class="table-secondary">
         <tr>
@@ -86,4 +87,6 @@
     </div>
 
 </div>
+
+{{-- Return request modal removed. --}}
 @endsection

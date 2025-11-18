@@ -34,6 +34,9 @@ Route::prefix('admin')->group(function () {
     Route::resource('comments', CommentController::class);
     Route::resource('accounts', AccountController::class)->except(['create','store']);
     Route::resource('orders', AdminOrderController::class);
+    // Return-request features removed
+    Route::get('notifications/{id}/read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('admin.notifications.read');
+    // Return-request routes removed
 });
 // Admin bulk actions for comments
 Route::post('admin/comments/bulk', [CommentController::class, 'bulk'])->name('comments.bulk');
@@ -82,5 +85,7 @@ Route::prefix('order-history')->group(function () {
     Route::get('/{order_code}', [OrderController::class, 'detail'])->name('order.history.detail');
     Route::post('/order-history/{order_code}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
 });
+
+    // Client return-request routes removed
 
 });

@@ -101,9 +101,11 @@ class OrderController extends Controller
 
         $order->save();
 
-        // If the order reached a delivered/received/complete status, mark payment as paid
+        // Automatic behaviors on specific target statuses
         $deliveredStatuses = ['Đã giao', 'Đã nhận', 'Thành công'];
         $toNameForAuto = $toName ?? ($order->status->status_name ?? null);
+
+        // If the order reached a delivered/received/complete status, mark payment as paid
         if ($toNameForAuto && in_array($toNameForAuto, $deliveredStatuses, true)) {
             if ($order->payment_status_id != 2) {
                 $order->payment_status_id = 2; // Đã thanh toán
@@ -120,6 +122,42 @@ class OrderController extends Controller
                 } catch (\Throwable $_e) {
                     logger()->error('Failed to write auto payment status log: ' . $_e->getMessage());
                 }
+            }
+        }
+
+        // If the order moved to 'Hoàn hàng' (return), mark payment as refunded and restock items
+        if ($toNameForAuto && $toNameForAuto === 'Hoàn hàng') {
+            try {
+                $refundStatus = PaymentStatus::where('status_name', 'Đã hoàn tiền')->first();
+                if ($refundStatus) {
+                    $order->payment_status_id = $refundStatus->id;
+                    $order->save();
+                }
+
+                // Restock product variants
+                foreach ($order->details as $d) {
+                    try {
+                        if ($d->product_variant_id) {
+                            $variant = \App\Models\ProductVariant::find($d->product_variant_id);
+                            if ($variant && isset($variant->stock_quantity)) {
+                                $variant->increment('stock_quantity', $d->quantity);
+                            }
+                        }
+                    } catch (\Throwable $_) {
+                        // continue on errors
+                    }
+                }
+
+                // Audit log for refund + restock
+                OrderStatusLog::create([
+                    'order_id' => $order->id,
+                    'old_status_id' => null,
+                    'new_status_id' => null,
+                    'changed_by' => Auth::id(),
+                    'note' => 'Order marked as Hoàn hàng — payment set to Đã hoàn tiền and items restocked',
+                ]);
+            } catch (\Throwable $e) {
+                logger()->error('Failed to process return actions: ' . $e->getMessage());
             }
         }
 
