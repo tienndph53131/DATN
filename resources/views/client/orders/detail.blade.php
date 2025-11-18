@@ -40,11 +40,7 @@
 </p>
 @php
     $paymentStatus = $order->paymentStatus->status_name ?? '---';
-    $paymentClass = match($paymentStatus) {
-        'Chưa thanh toán' => 'badge bg-warning text-dark',
-        'Đã thanh toán' => 'badge bg-success',
-        default => 'badge bg-light text-dark',
-    };
+    $paymentClass = config('payment.status_classes')[$paymentStatus] ?? 'badge bg-light text-dark';
 @endphp
 
 <p><strong>Trạng thái thanh toán:</strong>

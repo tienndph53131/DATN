@@ -75,10 +75,11 @@
 </td>
 
                <td>
-                        <span class="badge 
-                            {{ $order->paymentStatus && $order->paymentStatus->id == 2 ? 'bg-success' : 'bg-warning' }}">
-                            {{ $order->paymentStatus->status_name ?? '---' }}
-                        </span>
+                        @php
+                            $paymentStatus = $order->paymentStatus->status_name ?? '---';
+                            $paymentClass = config('payment.status_classes')[$paymentStatus] ?? 'badge bg-light text-dark';
+                        @endphp
+                        <span class="{{ $paymentClass }}">{{ $paymentStatus }}</span>
                     </td>
                             <td>
                                 <div class="d-flex">
