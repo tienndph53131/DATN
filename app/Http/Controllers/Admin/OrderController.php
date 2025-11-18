@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderStatus;
+use App\Models\OrderStatusLog;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -78,6 +80,20 @@ class OrderController extends Controller
 
         $order->status_id = $newStatusId;
         $order->save();
+
+        // create audit log for status change
+        try {
+            OrderStatusLog::create([
+                'order_id' => $order->id,
+                'old_status_id' => $old,
+                'new_status_id' => $order->status_id,
+                'changed_by' => Auth::id(),
+                'note' => null,
+            ]);
+        } catch (\Throwable $e) {
+            // do not break the flow if logging fails; but log to laravel log
+            logger()->error('Failed to write order status log: ' . $e->getMessage());
+        }
 
         // reload status relation
         $order->load('status');
