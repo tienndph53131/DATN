@@ -7,19 +7,24 @@
             <h1 class="h3 text-dark">Danh Sách Đơn Hàng</h1>
         </div>
 
-        <div class="row mb-3">
-            <div class="col-md-4 mb-2">
-                <input type="text" class="form-control" placeholder="Tìm kiếm theo mã đơn, khách hàng..." id="searchInput">
+        <form id="filterForm" method="GET" action="{{ route('orders.index') }}">
+            <div class="row mb-3">
+                <div class="col-md-4 mb-2">
+                    <input name="q" value="{{ request('q') }}" type="text" class="form-control" placeholder="Tìm kiếm theo mã đơn, khách hàng..." id="searchInput">
+                </div>
+                <div class="col-md-4 mb-2">
+                    <select id="statusFilter" name="status" class="form-select" onchange="document.getElementById('filterForm').submit()">
+                        <option value="">Tất cả trạng thái</option>
+                        @foreach($statuses as $s)
+                            <option value="{{ $s->id }}" {{ request('status') == $s->id ? 'selected' : '' }}>{{ $s->status_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <button class="btn btn-primary">Lọc</button>
+                </div>
             </div>
-            <div class="col-md-4 mb-2">
-                <select id="statusFilter" class="form-select">
-                    <option value="">Tất cả trạng thái</option>
-                    @foreach($statuses as $s)
-                        <option value="{{ $s->id }}">{{ $s->status_name }}</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
+        </form>
 
         <div class="table-responsive">
             <table class="table table-bordered table-hover align-middle" id="ordersTable">
@@ -37,7 +42,7 @@
                 </thead>
                 <tbody>
                     @foreach($orders as $order)
-                        <tr data-status-id="{{ $order->status_id }}">
+                        <tr data-order-id="{{ $order->id }}" data-status-id="{{ $order->status_id }}">
                             <td>{{ $order->order_code }}</td>
                             <td>{{ $order->account->name ?? 'Khách lạ' }}</td>
                             <td>
@@ -66,7 +71,7 @@
             default => 'badge bg-light text-dark',
         };
     @endphp
-    <span class="{{ $statusClass }}">{{ $status }}</span>
+    <span class="{{ $statusClass }} order-status-badge">{{ $status }}</span>
 </td>
 
                <td>
@@ -77,7 +82,7 @@
                     </td>
                             <td>
                                 <div class="d-flex">
-                                    <form method="POST" action="{{ route('orders.update', $order->id) }}" class="d-flex me-2">
+                                    <form method="POST" action="{{ route('orders.update', $order->id) }}" class="d-flex me-2 ajax-status-form">
                                         @csrf
                                         @method('PUT')
                                         <select name="status_id" class="form-select form-select-sm me-2">
@@ -106,5 +111,52 @@
                 row.style.display = text.includes(filter) ? '' : 'none'
             })
         })
+            // Client-side fallback search (still available)
+            document.getElementById('searchInput').addEventListener('keyup', function () {
+                const filter = this.value.toLowerCase();
+                const rows = document.querySelectorAll('#ordersTable tbody tr');
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(filter) ? '' : 'none';
+                });
+            });
+
+            // AJAX status update handler
+            document.querySelectorAll('.ajax-status-form').forEach(form => {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    const action = form.getAttribute('action');
+                    const fd = new FormData(form);
+                    // find csrf token
+                    let csrf = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : (fd.get('_token') || '');
+                    // Determine method override
+                    const method = fd.get('_method') || 'POST';
+
+                    fetch(action, {
+                        method: method === 'PUT' ? 'PUT' : method,
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrf
+                        },
+                        body: fd,
+                    }).then(res => res.json())
+                      .then(json => {
+                          if (json && json.order_id) {
+                              const row = document.querySelector('tr[data-order-id="' + json.order_id + '"]');
+                              if (row) {
+                                  const badge = row.querySelector('.order-status-badge');
+                                  if (badge) {
+                                      badge.className = json.status_class + ' order-status-badge';
+                                      badge.textContent = json.status_name;
+                                  }
+                                  row.setAttribute('data-status-id', json.status_id);
+                              }
+                          }
+                      }).catch(err => {
+                          console.error('Update error', err);
+                          alert('Không thể cập nhật trạng thái.');
+                      });
+                });
+            });
     </script>
 @endsection
