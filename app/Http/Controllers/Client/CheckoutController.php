@@ -7,16 +7,23 @@ use App\Models\Address;
 use App\Models\Cart;
 use App\Models\Order;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
 class CheckoutController extends Controller
 {
     public function index()
     {
-        $account = auth()->user();
+        // Sửa lỗi: Sử dụng đúng guard 'client' để lấy thông tin người dùng đã đăng nhập
+        $account = auth('client')->user();
+        if (!$account) {
+            return redirect()->route('client.login')->with('error', 'Vui lòng đăng nhập để tiếp tục.');
+        }
 
-        $cart = Cart::where('account_id', $account->id)
+        $cart = Cart::where('account_id', $account->id) // Bây giờ $account->id sẽ không bị lỗi
             ->first();
         if (!$cart) {
             return redirect()->route('cart.index')->with('error', 'Giỏ hàng trống không thể thanh toán');
@@ -28,19 +35,78 @@ class CheckoutController extends Controller
         if ($cartDetails->isEmpty()) {
             return redirect()->route('cart.index')->with('error', 'Giỏ hàng trống không thể thanh toán');
         }
-        $address = Address::where('account_id', auth()->id())->get();
+        $addresses = Address::where('account_id', $account->id)
+            ->with(['province', 'district', 'ward']) // Tải thông tin chi tiết địa chỉ
+            ->get();
         $total = $cartDetails->sum('amount');
-        return view('client.checkout', compact('cartDetails', 'total', 'address'));
+
+        // Lấy danh sách tỉnh/thành từ GHN API (sử dụng Cache)
+        $provinces = Cache::remember('ghn_provinces', 60 * 60 * 24, function () {
+            $ghnToken = env('GHN_TOKEN');
+            $res = Http::withHeaders(['Token' => $ghnToken])
+                ->get('https://online-gateway.ghn.vn/shiip/public-api/master-data/province');
+            if ($res->ok()) {
+                return $res->json()['data'] ?? [];
+            }
+            // Ghi lại lỗi nếu không lấy được dữ liệu
+            Log::error('GHN API Error - Get Provinces: ' . $res->body());
+            return [];
+        });
+
+        return view('client.checkout', compact(
+            'cartDetails', 
+            'total', 
+            'addresses', 
+            'account', 
+            'provinces'
+        ));
     }
+
+    public function getDistricts(Request $request)
+    {
+        $provinceId = $request->input('province_id');
+        if (!$provinceId) {
+            return response()->json(['error' => 'Thiếu ID tỉnh thành'], 400);
+        }
+
+        $districts = Cache::remember('ghn_districts_' . $provinceId, 60 * 60 * 24, function () use ($provinceId) {
+            $ghnToken = env('GHN_TOKEN');
+            $res = Http::withHeaders(['Token' => $ghnToken, 'Content-Type' => 'application/json'])
+                ->post('https://online-gateway.ghn.vn/shiip/public-api/master-data/district', ['province_id' => (int)$provinceId]);
+            return $res->ok() ? ($res->json()['data'] ?? []) : [];
+        });
+
+        return response()->json($districts);
+    }
+
+    public function getWards(Request $request)
+    {
+        $districtId = $request->input('district_id');
+        if (!$districtId) {
+            return response()->json(['error' => 'Thiếu ID quận huyện'], 400);
+        }
+
+        $ghnToken = env('GHN_TOKEN');
+        $res = Http::withHeaders(['Token' => $ghnToken, 'Content-Type' => 'application/json'])
+            ->post('https://online-gateway.ghn.vn/shiip/public-api/master-data/ward', ['district_id' => (int)$districtId]);
+
+        return $res->ok() ? response()->json($res->json()['data'] ?? []) : response()->json(['error' => 'Không thể lấy dữ liệu phường xã'], 500);
+    }
+
     public function checkout(Request $request)
     {
+        // Sửa lỗi: Sử dụng đúng guard 'client'
+        $account = auth('client')->user();
+        if (!$account) {
+            return redirect()->route('client.login')->with('error', 'Phiên đăng nhập đã hết hạn.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:100',
             'email' => 'required|email|max:100',
             'phone' => 'required|string|max:11',
-            'address_id' => 'required',
         ]);
-        $cart = Cart::where('account_id', auth()->id())
+        $cart = Cart::where('account_id', $account->id)
             ->first();
         if (!$cart) {
             return redirect()->route('cart.index')->with('error', 'Giỏ hàng trống không thể thanh toán');
@@ -50,79 +116,81 @@ class CheckoutController extends Controller
         // Tạo đơn hàng
         DB::beginTransaction();
         try {
-            $order = Order::create([
-                'order_code' => 'DH' . time(),
-                'account_id' => auth()->id(),
-                'name' => $request->name,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'address_id' => $request->address_id,
-                'booking_date' => Carbon::now(),
-                'total' => $total,
-                'note' => $request->note ?? null,
-                'payment_id' => $request->payment_id,
-                'status_id' => 1,
-            ]);
-            foreach ($cartDetails as $item) {
-    DB::table('order_details')->insert([
-        'order_id' => $order->id,
-        'product_variant_id' => $item->product_variant_id,
-        'product_id' => $item->ProductVariant->product_id,
-        'quantity' => $item->quantity,
-        'price' => $item->price,
-        'amount' => $item->amount,
-    ]);
+            // Xử lý thanh toán khi nhận hàng (COD)
+            if ($request->payment_id == 1) { // Giả sử 1 là ID của COD
+                $order = Order::create([
+                    'order_code' => 'DH' . time(),
+                    'account_id' => $account->id,
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'phone' => $request->phone,
+                    'booking_date' => Carbon::now(),
+                    'total' => $total,
+                    'note' => $request->note ?? null,
+                    'payment_id' => $request->payment_id,
+                    'status_id' => 1, // Trạng thái chờ xác nhận
+                ]);
 
-    // Giảm tồn kho (stock_quantity)
-    $variant = $item->productVariant;
+                foreach ($cartDetails as $item) {
+                    DB::table('order_details')->insert([
+                        'order_id' => $order->id,
+                        'product_variant_id' => $item->variant_id,
+                        'product_id' => $item->ProductVariant->product_id,
+                        'quantity' => $item->quantity,
+                        'price' => $item->price,
+                        'amount' => $item->amount,
+                    ]);
 
-    if (!$variant || $variant->stock_quantity < $item->quantity) {
-        throw new \Exception('Sản phẩm "' . $variant->product->name . '" không đủ tồn kho.');
-    }
+                    $variant = $item->productVariant;
+                    if (!$variant || $variant->stock_quantity < $item->quantity) {
+                        throw new \Exception('Sản phẩm "' . $variant->product->name . '" không đủ tồn kho.');
+                    }
+                    $variant->decrement('stock_quantity', $item->quantity);
+                }
 
-    $variant->decrement('stock_quantity', $item->quantity);
-}
-
-            if ($request->payment_id == 1) {
                 $cart->details()->delete();
                 $cart->delete();  // Xóa giỏ hàng sau khi đặt hàng thành công
                 DB::commit();
                 return redirect()->route('order.success')->with('success', 'Đặt hàng thành công');
             }
+
+            // Chuẩn bị dữ liệu cho thanh toán online (Momo, VNPAY)
             $cartDetailsArray = $cartDetails->map(function ($item) {
                 return [
-                    'product_variant_id' => $item->product_variant_id,
+                    'product_variant_id' => $item->variant_id, // No change needed here, it's correct
                     'product_id' => $item->ProductVariant->product_id,
                     'quantity' => $item->quantity,
                     'price' => $item->price,
                     'amount' => $item->amount,
                 ];
-            })->toArray(); // Luu product details thanh toan momo vao session
+            })->toArray();
 
+            // Xử lý thanh toán Momo
             if ($request->payment_id == 2) {
                 session([
                     'momo_order' => [
-                        'account_id' => auth()->id(),
+                        'account_id' => $account->id,
                         'name' => $request->name,
                         'email' => $request->email,
                         'phone' => $request->phone,
-                        'address_id' => $request->address_id,
                         'total' => $total,
                         'note' => $request->note ?? null,
                         'cart_details' => $cartDetailsArray, // Luu product details thanh toan momo vao session
                         'payment_id' => 2,
                     ]
                 ]);
+                DB::commit(); // Commit transaction trước khi chuyển hướng
                 return $this->momopayment($total);
             }
+
+            // Xử lý thanh toán VNPAY
             if ($request->payment_id == 3) {
                 session([
                     'vnpay_order' => [
-                        'account_id' => auth()->id(),
+                        'account_id' => $account->id,
                         'name' => $request->name,
                         'email' => $request->email,
                         'phone' => $request->phone,
-                        'address_id' => $request->address_id,
                         'total' => $total,
                         'note' => $request->note ?? null,
                         'cart_details' => $cartDetailsArray,
@@ -130,8 +198,12 @@ class CheckoutController extends Controller
 
                     ]
                 ]);
+                DB::commit(); // Commit transaction trước khi chuyển hướng
                 return $this->vnpay_payment();
             }
+
+            // Nếu không phải các phương thức trên, rollback và báo lỗi
+            throw new \Exception("Phương thức thanh toán không hợp lệ.");
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Đã có lỗi xảy ra trong quá trình thanh toán: ' . $e->getMessage());
@@ -202,10 +274,6 @@ class CheckoutController extends Controller
         $result = $this->execPostRequest($endpoint, json_encode($data));
         $jsonResult = json_decode($result, true);  // decode json
         return redirect()->to($jsonResult['payUrl']);
-        // dd($jsonResult);
-        //Just a example, please check more in there
-
-        // header("Location: " . $jsonResult['payUrl']);
     }
     public function momoReturn(Request $request)
     {
@@ -224,7 +292,6 @@ class CheckoutController extends Controller
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'phone' => $data['phone'],
-                'address_id' => $data['address_id'],
                 'booking_date' => Carbon::now(),
                 'total' => $data['total'],
                 'note' => $data['note'] ?? null,
@@ -387,7 +454,6 @@ class CheckoutController extends Controller
                     'name' => $data['name'],
                     'email' => $data['email'],
                     'phone' => $data['phone'],
-                    'address_id' => $data['address_id'],
                     'booking_date' => Carbon::now(),
                     'total' => $data['total'],
                     'note' => $data['note'] ?? null,

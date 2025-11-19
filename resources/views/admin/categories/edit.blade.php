@@ -3,7 +3,7 @@
 @section('content')
 <div class="container mt-4">
     <h2>Sửa danh mục</h2>
-    <form action="{{ route('categories.update', $category->id) }}" method="POST">
+    <form action="{{ route('admin.categories.update', $category->id) }}" method="POST">
         @csrf
         @method('PUT')
 

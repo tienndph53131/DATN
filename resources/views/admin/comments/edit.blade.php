@@ -4,7 +4,7 @@
 <div class="container-fluid py-4">
     <h3 class="mb-3">Chỉnh sửa bình luận #{{ $comment->id }}</h3>
 
-    <form action="{{ route('comments.update', $comment->id) }}" method="POST">
+    <form action="{{ route('admin.comments.update', $comment->id) }}" method="POST">
         @csrf
         @method('PATCH')
 
@@ -42,7 +42,7 @@
 
         <div class="d-flex gap-2">
             <button class="btn btn-primary">Lưu</button>
-            <a href="{{ route('comments.index') }}" class="btn btn-secondary">Hủy</a>
+            <a href="{{ route('admin.comments.index') }}" class="btn btn-secondary">Hủy</a>
         </div>
     </form>
 </div>

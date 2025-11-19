@@ -318,6 +318,8 @@
             <!-- Left Column -->
             <div>
                 <div class="checkout-form-section">
+                   
+
                     @if (session('success'))
                         <div class="alert alert-success">✓ {{ session('success') }}</div>
                     @endif
@@ -326,103 +328,80 @@
                     @endif
 
                     <!-- Thông tin khách hàng -->
-                    <form action="{{ route('checkout.process') }}" method="post">
+                    <form action="{{ route('client.checkout.process') }}" method="post" id="checkout-form">
                         @csrf
                         <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 25px; color: #2d3748;">Thông tin
                             khách hàng</h2>
 
                         <div class="form-group">
                             <label for="name">Họ và tên</label>
-                            <input type="text" name="name" id="name" placeholder="Nhập họ và tên" required>
+                            <input type="text" name="name" id="name" placeholder="Nhập họ và tên" value="{{ old('name', $account->name ?? '') }}" required>
                         </div>
 
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" name="email" id="email" placeholder="Nhập email" required>
+                            <input type="email" name="email" id="email" placeholder="Nhập email" value="{{ old('email', $account->email ?? '') }}" required>
                         </div>
 
                         <div class="form-group">
                             <label for="phone">Số điện thoại</label>
-                            <input type="text" name="phone" id="phone" placeholder="Nhập số điện thoại" required>
+                            <input type="text" name="phone" id="phone" placeholder="Nhập số điện thoại" value="{{ old('phone', $account->phone ?? '') }}" required>
                         </div>
 
+                        <hr style="margin: 30px 0;">
+                        <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 25px; color: #2d3748;">Địa chỉ giao hàng</h2>
+
+                        @if($addresses->count() > 0)
                         <div class="form-group">
-                            <label for="address_id">Địa chỉ giao hàng</label>
-                            <select name="address_id" id="address_id">
-                                <option value="">-- Chọn địa chỉ --</option>
-                                @foreach ($address as $item)
-                                    <option value="{{ $item->id }}">{{ $item->province_name }} - {{ $item->district_name }} -
-                                        {{ $item->ward_name }}
+                            <label for="saved_address">Chọn địa chỉ đã lưu</label>
+                            <select id="saved_address" class="form-group">
+                                <option value="">-- Chọn một địa chỉ --</option>
+                                @foreach($addresses as $address)
+                                    <option value="{{ $address->id }}" 
+                                            data-province-id="{{ $address->province_id }}"
+                                            data-district-id="{{ $address->district_id }}"
+                                            data-ward-id="{{ $address->ward_id }}"
+                                            data-address-detail="{{ $address->address_detail }}">
+                                        {{ $address->address_detail }}, {{ optional($address->ward)->name }}, {{ optional($address->district)->name }}, {{ optional($address->province)->name }}
                                     </option>
                                 @endforeach
                             </select>
                         </div>
-                        {{-- <input type="hidden" name="payment_id" value="1"> --}}
-
-                        <!-- Giỏ hàng -->
-                        @if (isset($cartDetails) && count($cartDetails) > 0)
-                            <div class="cart-section">
-                                <h2>Chi tiết đơn hàng</h2>
-                                <div class="table-responsive">
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Sản phẩm</th>
-                                                <th>Phân loại</th>
-                                                <th>Giá</th>
-                                                <th>Số lượng</th>
-                                                <th>Thành tiền</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach ($cartDetails as $item)
-                                                <tr>
-                                                    <td>{{ $item->productVariant->product->name }}</td>
-                                                    <td> @foreach ($item->productVariant->attributeValues as $value)
-                                                        {{ $value->value }}
-                                                    @endforeach
-                                                    </td>
-                                                    <td>{{ number_format($item->price) }}đ</td>
-                                                    <td style="text-align: center;">{{ $item->quantity }}</td>
-                                                    <td style="font-weight: 600; color: #3182ce;">
-                                                        {{ number_format($item->amount) }}đ
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div class="cart-total">
-                                    <span class="cart-total-label">Tổng cộng:</span>
-                                    <span class="cart-total-amount">{{ number_format($total) }}đ</span>
-                                </div>
-                            </div>
-
-                            <hr>
-
-                            <h3>Phương thức thanh toán</h3>
-
-                            <div class="form-group">
-                                <select name="payment_id" required>
-                                    <option value="1">COD (Thanh toán khi nhận hàng)</option>
-                                    <option value="2">MoMo</option>
-                                    <option value="3">VNPay</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Đặt hàng</button>
                         @endif
+                        <div class="form-group">
+                            <label for="province">Tỉnh/Thành phố</label>
+                            <select id="province" name="province_id" class="form-group" required>
+                                <option value="">Chọn Tỉnh/Thành phố</option>
+                                @foreach($provinces as $p)
+                                    <option value="{{ $p['ProvinceID'] }}">
+                                        {{ $p['ProvinceName'] }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                
+                        <div class="form-group">
+                            <label for="district">Quận/Huyện</label>
+                            <select id="district" name="district_id" class="form-group" required>
+                               <option value="">Chọn Quận/Huyện</option>
+                            </select>
+                        </div>
+                
+                        <div class="form-group">
+                            <label for="ward">Xã/Phường</label>
+                            <select id="ward" name="ward_id" class="form-group" required>
+                                <option value="">Chọn Xã/Phường</option>
+                            </select>
+                        </div>
+                
+                        <div class="form-group">
+                            <label for="address_detail">Địa chỉ chi tiết (Số nhà, tên đường...)</label>
+                            <input type="text" name="address_detail" id="address_detail" class="form-group" placeholder="Nhập địa chỉ chi tiết" required>
+                        </div>
+
+                        {{-- Nút submit sẽ được chuyển sang cột tóm tắt đơn hàng --}}
                     </form>
                 </div>
-
-                <!-- MoMo Payment Form -->
-                {{-- <div class="checkout-form-section" style="margin-top: 20px;">
-                    <form action="{{ route('momo.payment') }}" method="post">
-                        @csrf
-                        <input type="hidden" name="total_momo" id="total_momo" value="{{ $total ?? 0 }}">
-                        <input type="hidden" name="payment_id" value="2">
-                        <button type="submit" class="btn btn-secondary">🏦 Thanh Toán MoMo</button>
-                    </form>
-                </div> --}}
             </div>
 
             <!-- Right Column - Order Summary -->
@@ -430,18 +409,44 @@
                 <h3>Tóm tắt đơn hàng</h3>
 
                 @if (isset($cartDetails) && count($cartDetails) > 0)
-                    @foreach ($cartDetails as $item)
-                        <div class="summary-item">
-                            <span class="summary-item-label">{{ $item->productVariant->product->name }}</span>
-                            <span style="color: #2d3748; font-weight: 600;">{{ number_format($item->amount) }}đ</span>
-                        </div>
-                    @endforeach
+                    <div class="table-responsive" style="margin-bottom: 20px;">
+                        <table style="font-size: 0.9rem;">
+                            <tbody>
+                                @foreach ($cartDetails as $item)
+                                    <tr>
+                                        <td style="padding: 10px 5px;">
+                                            {{ $item->productVariant->product->name }} 
+                                            <small class="d-block text-muted">
+                                                @foreach ($item->productVariant->attributeValues as $value) {{ $value->value }}@if(!$loop->last), @endif @endforeach
+                                                x {{ $item->quantity }}
+                                            </small>
+                                        </td>
+                                        <td style="text-align: right; padding: 10px 5px; font-weight: 600;">{{ number_format($item->amount) }}đ</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
 
                     <div class="summary-divider"></div>
 
                     <div class="summary-total">
                         <span class="summary-total-label">Tổng tiền:</span>
                         <span class="summary-total-amount">{{ number_format($total) }}đ</span>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label for="payment_method">Phương thức thanh toán</label>
+                        <select name="payment_id" id="payment_method" class="form-group" form="checkout-form" required>
+                            <option value="1">COD (Thanh toán khi nhận hàng)</option>
+                            <option value="2">MoMo</option>
+                            <option value="3">VNPay</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="note">Ghi chú (tùy chọn)</label>
+                        <input type="text" name="note" id="note" class="form-group" placeholder="Ghi chú cho người bán..." form="checkout-form">
                     </div>
 
                     <div
@@ -451,7 +456,104 @@
                 @else
                     <p style="text-align: center; color: #718096; padding: 20px;">Giỏ hàng của bạn trống</p>
                 @endif
+
+                <div class="buttons-section">
+                    <button type="submit" class="btn btn-primary" form="checkout-form">Hoàn tất đơn hàng</button>
+                </div>
             </div>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const provinceSelect = document.getElementById('province');
+    const districtSelect = document.getElementById('district');
+    const wardSelect = document.getElementById('ward');
+    const savedAddressSelect = document.getElementById('saved_address');
+    const addressDetailInput = document.getElementById('address_detail');
+
+    // Hàm gọi API để lấy danh sách Quận/Huyện
+    function loadDistricts(provinceId, selectedDistrictId = null) {
+        districtSelect.innerHTML = '<option value="">Đang tải...</option>';
+        wardSelect.innerHTML = '<option value="">Chọn Xã/Phường</option>';
+        if (!provinceId) {
+            wardSelect.innerHTML = '<option value="">Chọn Xã/Phường</option>';
+            districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+            return;
+        }
+
+        fetch(`{{ route('client.checkout.districts') }}?province_id=${provinceId}`)
+            .then(res => res.json())
+            .then(data => {
+                districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+                const districts = Array.isArray(data) ? data : (data.data || []);
+                districts.forEach(d => {
+                    const option = new Option(d.DistrictName, d.DistrictID);
+                    if (selectedDistrictId && d.DistrictID == selectedDistrictId) {
+                        option.selected = true;
+                    }
+                    districtSelect.appendChild(option);
+                });
+            })
+            .catch(err => {
+                console.error('Lỗi khi tải danh sách quận/huyện:', err);
+                districtSelect.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
+            });
+    }
+
+    // Hàm gọi API để lấy danh sách Phường/Xã
+    function loadWards(districtId, selectedWardId = null) {
+        wardSelect.innerHTML = '<option value="">Đang tải...</option>';
+        if (!districtId) {
+            wardSelect.innerHTML = '<option value="">Chọn Xã/Phường</option>';
+            return;
+        }
+
+        fetch(`{{ route('client.checkout.wards') }}?district_id=${districtId}`)
+            .then(res => res.json())
+            .then(data => {
+                wardSelect.innerHTML = '<option value="">Chọn Xã/Phường</option>';
+                const wards = Array.isArray(data) ? data : (data.data || []);
+                wards.forEach(w => {
+                    const option = new Option(w.WardName, w.WardCode);
+                    if (selectedWardId && w.WardCode == selectedWardId) {
+                        option.selected = true;
+                    }
+                    wardSelect.appendChild(option);
+                });
+            })
+            .catch(err => {
+                console.error('Lỗi khi tải danh sách phường/xã:', err);
+                wardSelect.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
+            });
+    }
+
+    provinceSelect.addEventListener('change', e => loadDistricts(e.target.value));
+    districtSelect.addEventListener('change', e => loadWards(e.target.value));
+
+    // Xử lý khi chọn địa chỉ đã lưu
+    if (savedAddressSelect) {
+        savedAddressSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (!selectedOption.value) return;
+
+            const provinceId = selectedOption.dataset.provinceId;
+            const districtId = selectedOption.dataset.districtId;
+            const wardId = selectedOption.dataset.wardId;
+            const addressDetail = selectedOption.dataset.addressDetail;
+
+            provinceSelect.value = provinceId;
+            addressDetailInput.value = addressDetail;
+            
+            // Tải danh sách quận/huyện và tự động chọn đúng quận
+            loadDistricts(provinceId, districtId);
+
+            // Tải danh sách phường/xã và tự động chọn đúng xã
+            loadWards(districtId, wardId);
+        });
+    }
+});
+</script>
 @endsection

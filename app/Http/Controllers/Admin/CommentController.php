@@ -60,14 +60,14 @@ class CommentController extends Controller
                 return response()->json(['success' => true, 'message' => 'Cập nhật bình luận thành công.', 'comment' => $comment]);
             }
 
-            return redirect()->route('comments.index')->with('success', 'Cập nhật bình luận thành công.');
+            return redirect()->route('admin.comments.index')->with('success', 'Cập nhật bình luận thành công.');
         }
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => false, 'message' => 'Không có thay đổi nào được gửi.'], 400);
         }
 
-        return redirect()->route('comments.index')->with('info', 'Không có thay đổi nào được gửi.');
+        return redirect()->route('admin.comments.index')->with('info', 'Không có thay đổi nào được gửi.');
     }
 
     public function destroy($id)
@@ -80,7 +80,7 @@ class CommentController extends Controller
             return response()->json(['success' => true, 'message' => 'Đã xóa bình luận.','id'=>$id]);
         }
 
-        return redirect()->route('comments.index')->with('success', 'Đã xóa bình luận.');
+        return redirect()->route('admin.comments.index')->with('success', 'Đã xóa bình luận.');
     }
 
     // Bulk actions: approve/hide/delete
@@ -92,7 +92,7 @@ class CommentController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Chưa chọn bình luận nào.'], 400);
             }
-            return redirect()->route('comments.index')->with('error', 'Chưa chọn bình luận nào.');
+            return redirect()->route('admin.comments.index')->with('error', 'Chưa chọn bình luận nào.');
         }
 
         $comments = Comment::whereIn('id', $ids)->get();
@@ -101,7 +101,7 @@ class CommentController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => true, 'message' => 'Đã duyệt các bình luận đã chọn.', 'action' => 'approve', 'ids' => $ids]);
             }
-            return redirect()->route('comments.index')->with('success', 'Đã duyệt các bình luận đã chọn.');
+            return redirect()->route('admin.comments.index')->with('success', 'Đã duyệt các bình luận đã chọn.');
         }
 
         if ($action === 'hide') {
@@ -109,7 +109,7 @@ class CommentController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => true, 'message' => 'Đã ẩn các bình luận đã chọn.', 'action' => 'hide', 'ids' => $ids]);
             }
-            return redirect()->route('comments.index')->with('success', 'Đã ẩn các bình luận đã chọn.');
+            return redirect()->route('admin.comments.index')->with('success', 'Đã ẩn các bình luận đã chọn.');
         }
 
         if ($action === 'delete') {
@@ -117,12 +117,12 @@ class CommentController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => true, 'message' => 'Đã xóa các bình luận đã chọn.', 'action' => 'delete', 'ids' => $ids]);
             }
-            return redirect()->route('comments.index')->with('success', 'Đã xóa các bình luận đã chọn.');
+            return redirect()->route('admin.comments.index')->with('success', 'Đã xóa các bình luận đã chọn.');
         }
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => false, 'message' => 'Hành động không hợp lệ.'], 400);
         }
-        return redirect()->route('comments.index')->with('error', 'Hành động không hợp lệ.');
+        return redirect()->route('admin.comments.index')->with('error', 'Hành động không hợp lệ.');
     }
 }

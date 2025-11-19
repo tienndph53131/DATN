@@ -48,7 +48,7 @@ class HomeController extends Controller
         $product->increment('view');
 
         // Sản phẩm liên quan
-        // [TỐI ƯU] Thêm with('variants') để tránh lỗi N+1 query trong view
+
         $relatedProducts = Product::with('variants')
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
@@ -56,7 +56,7 @@ class HomeController extends Controller
             ->take(4)
             ->get();
 
-        // [TỐI ƯU] Lấy thuộc tính và nhóm lại để giảm query
+
         $allAttributeValues = $product->variants->flatMap(function ($variant) {
             return $variant->attributeValues;
         })->unique('id');
@@ -70,19 +70,18 @@ class HomeController extends Controller
 
         // Tạo dữ liệu JSON cho view JS
         $variantData = $product->variants->map(function ($v) use ($product) {
-            // attribute maps keyed by slug: ids and text
             $attrMapId = [];
             $attrMapText = [];
             foreach ($v->attributeValues as $av) {
                 $attrName = $av->attribute ? $av->attribute->name : null;
                 if ($attrName) {
                     $slug = Str::slug($attrName, '-');
-                    $attrMapId[$slug] = $av->id; // use attribute_value id for matching
-                    $attrMapText[$slug] = $av->value; // human-readable text for display
+                    $attrMapId[$slug] = $av->id; 
+                    $attrMapText[$slug] = $av->value;
                 }
             }
 
-            // pick variant image if exists, else use product image
+
             $vImage = $v->images->first();
             $imageUrl = $vImage ? asset('uploads/products/' . $vImage->link_images) : ($product->image ? asset('uploads/products/' . $product->image) : null);
 
@@ -90,15 +89,13 @@ class HomeController extends Controller
                 'id' => $v->id,
                 'price' => $v->effective_price ?? $v->price,
                 'image' => $imageUrl,
-                'stock_quantity' => $v->stock_quantity, // [THÊM] stock_quantity cho JS
+                'stock_quantity' => $v->stock_quantity,
                 'attributes' => $attrMapId,
                 'attributes_text' => $attrMapText,
             ];
         });
         // Lấy bình luận đã duyệt để hiển thị
         $comments = $product->comments()->where('status', 1)->with('account')->orderByDesc('date')->get();
-
-        // Rating aggregates
         $avgRating = $comments->count() ? round($comments->avg('rating'), 1) : 0;
         $totalReviews = $comments->count();
         $ratingCounts = [];
@@ -120,7 +117,6 @@ class HomeController extends Controller
             'ratingCounts'
         ));
     }
-     // Helper: map color value to CSS color. Kept private to avoid global redeclare issues in views.
     private function colorToCss(?string $value): string
     {
         $map = [

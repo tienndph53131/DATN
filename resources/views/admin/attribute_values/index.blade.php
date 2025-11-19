@@ -5,7 +5,7 @@
 @section('content')
 <div class="container mt-4">
     <h2>Danh sách Giá trị thuộc tính</h2>
-    <a href="{{ route('attribute_values.create') }}" class="btn btn-success mb-3">+ Thêm giá trị</a>
+    <a href="{{ route('admin.attribute_values.create') }}" class="btn btn-success mb-3">+ Thêm giá trị</a>
 
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
@@ -26,8 +26,8 @@
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span>{{ $val->value }}</span>
                             <div>
-                                <a href="{{ route('attribute_values.edit', $val->id) }}" class="btn btn-warning btn-sm">Sửa</a>
-                                <form action="{{ route('attribute_values.destroy', $val->id) }}" method="POST" style="display:inline-block">
+                                <a href="{{ route('admin.attribute_values.edit', $val->id) }}" class="btn btn-warning btn-sm">Sửa</a>
+                                <form action="{{ route('admin.attribute_values.destroy', $val->id) }}" method="POST" style="display:inline-block">
                                     @csrf
                                     @method('DELETE')
                                     <button class="btn btn-danger btn-sm" onclick="return confirm('Xóa giá trị này?')">Xóa</button>
@@ -43,8 +43,8 @@
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span>{{ $val->value }}</span>
                             <div>
-                                <a href="{{ route('attribute_values.edit', $val->id) }}" class="btn btn-warning btn-sm">Sửa</a>
-                                <form action="{{ route('attribute_values.destroy', $val->id) }}" method="POST" style="display:inline-block">
+                                <a href="{{ route('admin.attribute_values.edit', $val->id) }}" class="btn btn-warning btn-sm">Sửa</a>
+                                <form action="{{ route('admin.attribute_values.destroy', $val->id) }}" method="POST" style="display:inline-block">
                                     @csrf
                                     @method('DELETE')
                                     <button class="btn btn-danger btn-sm" onclick="return confirm('Xóa giá trị này?')">Xóa</button>

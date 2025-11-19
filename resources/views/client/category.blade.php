@@ -29,7 +29,7 @@
                             <p class="text-muted mb-3">Chưa có giá</p>
                         @endif
 
-                        <a href="{{ route('product.show', $product->id) }}" class="btn btn-outline-primary btn-sm">Xem chi tiết</a>
+                        <a href="{{ route('products.show', $product->id) }}" class="btn btn-outline-primary btn-sm">Xem chi tiết</a>
                     </div>
                 </div>
             </div>

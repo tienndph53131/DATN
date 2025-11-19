@@ -63,7 +63,7 @@ class CartController extends Controller
         $detail->amount = $variant->price * $newQty;
         $detail->save();
 
-        return redirect()->route('cart.index')->with('success', 'Đã thêm vào giỏ hàng!');
+        return redirect()->route('client.cart.index')->with('success', 'Đã thêm vào giỏ hàng!');
     }
 
     // Xóa sản phẩm (AJAX)

@@ -5,7 +5,7 @@
 @section('content')
 <div class="container mt-4">
     <h2>Thêm giá trị thuộc tính</h2>
-    <form action="{{ route('attribute_values.store') }}" method="POST">
+    <form action="{{ route('admin.attribute_values.store') }}" method="POST">
         @csrf
 
         {{-- Chọn thuộc tính --}}
@@ -40,7 +40,7 @@
         </div>
 
         <button type="submit" class="btn btn-success">Lưu</button>
-        <a href="{{ route('attribute_values.index') }}" class="btn btn-secondary">Quay lại</a>
+        <a href="{{ route('admin.attribute_values.index') }}" class="btn btn-secondary">Quay lại</a>
     </form>
 </div>
 @endsection

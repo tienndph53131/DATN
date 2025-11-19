@@ -5,7 +5,7 @@
 @section('content')
 <h2>Chỉnh sửa sản phẩm</h2>
 
-<form action="{{ route('products.update', $product->id) }}" method="post" enctype="multipart/form-data">
+<form action="{{ route('admin.products.update', $product->id) }}" method="post" enctype="multipart/form-data">
     @csrf
     @method('PUT')
 
@@ -122,7 +122,7 @@
         @endforeach
     </div>
     <button type="submit" class="btn btn-primary mt-3">Cập nhật sản phẩm</button>
-    <a href="{{ route('products.index') }}" class="btn btn-secondary mt-3">Hủy</a>
+    <a href="{{ route('admin.products.index') }}" class="btn btn-secondary mt-3">Hủy</a>
 </form>
 
 <script>

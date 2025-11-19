@@ -6,7 +6,7 @@
 <h2>Thêm sản phẩm</h2>
 
 
-<form action="{{ route('products.store') }}" method="post" enctype="multipart/form-data" id="productForm">
+<form action="{{ route('admin.products.store') }}" method="post" enctype="multipart/form-data" id="productForm">
 
     @csrf
 
@@ -120,7 +120,7 @@
     </div>
 
     <button type="submit" class="btn btn-primary mt-3">Thêm sản phẩm</button>
-    <a href="{{ route('products.index') }}" class="btn btn-secondary mt-3">Hủy</a>
+    <a href="{{ route('admin.products.index') }}" class="btn btn-secondary mt-3">Hủy</a>
 </form>
 
 

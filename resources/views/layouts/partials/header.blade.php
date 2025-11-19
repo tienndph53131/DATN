@@ -59,7 +59,7 @@
         </a>
 
         <!-- Giỏ hàng -->
-        <a href="{{ route('cart.index') }}" class="btn border position-relative me-2">
+        <a href="{{ route('client.cart.index') }}" class="btn border position-relative me-2">
             <i class="fas fa-shopping-cart text-primary"></i>
             <span class="badge position-absolute top-0 start-100 translate-middle bg-danger text-white rounded-pill">
                 {{ $cartCount }}
@@ -129,29 +129,26 @@
 
                     <div class="navbar-nav ml-auto py-0">
     {{-- Nếu đã đăng nhập --}}
-@if(Auth::guard('client')->check())
-    <li class="nav-item">
-         <a href="{{ route('profile.edit') }}" class="nav-link">
-       👤 {{ Auth::guard('client')->user()->name }}
-    </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link text-danger" href="#" 
-           onclick="event.preventDefault(); document.getElementById('client-logout-form').submit();">
-           Đăng xuất
-        </a>
-        <form id="client-logout-form" action="{{ route('client.logout') }}" method="POST" class="d-none">
-            @csrf
-        </form>
-    </li>
-@else
-    <li class="nav-item">
-        <a class="nav-link" href="{{ route('client.login') }}">Đăng nhập</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="{{ route('client.register') }}">Đăng ký</a>
-    </li>
-@endif
+                        @if (Auth::guard('client')->check())
+                            <div class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+                                    👤 {{ Auth::guard('client')->user()->name }}
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right rounded-0 m-0">
+                                    <a href="{{ route('client.profile.edit') }}" class="dropdown-item">Thông tin cá nhân</a>
+                                    <a href="{{ route('client.orders.index') }}" class="dropdown-item">Lịch sử đơn hàng</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a href="#" class="dropdown-item"
+                                        onclick="event.preventDefault(); document.getElementById('client-logout-form').submit();">
+                                        Đăng xuất
+                                    </a>
+                                    <form id="client-logout-form" action="{{ route('client.logout') }}" method="POST" class="d-none">@csrf</form>
+                                </div>
+                            </div>
+                        @else
+                            <a href="{{ route('client.login') }}" class="nav-item nav-link">Đăng nhập</a>
+                            <a href="{{ route('client.register') }}" class="nav-item nav-link">Đăng ký</a>
+                        @endif
 
 
                 </div>

@@ -3,7 +3,7 @@
 @section('content')
 <div class="container mt-4">
     <h2>Danh sách danh mục</h2>
-    <a href="{{ route('categories.create') }}" class="btn btn-success mb-3">+ Thêm danh mục</a>
+    <a href="{{ route('admin.categories.create') }}" class="btn btn-success mb-3">+ Thêm danh mục</a>
 
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
@@ -32,8 +32,8 @@
                 <td>{{ $item->description }}</td>
                 <td>{{ $item->created_at->format('d/m/Y') }}</td>
                 <td>
-                    <a href="{{ route('categories.edit', $item->id) }}" class="btn btn-warning btn-sm">Sửa</a>
-                    <form action="{{ route('categories.destroy', $item->id) }}" method="POST" style="display:inline;">
+                    <a href="{{ route('admin.categories.edit', $item->id) }}" class="btn btn-warning btn-sm">Sửa</a>
+                    <form action="{{ route('admin.categories.destroy', $item->id) }}" method="POST" style="display:inline;">
                         @csrf
                         @method('DELETE')
                         <button class="btn btn-danger btn-sm" onclick="return confirm('Xóa danh mục này?')">Xóa</button>

@@ -6,7 +6,7 @@
 
 <div class="container mt-4">
     <h2>Chi tiết sản phẩm</h2>
-    <a href="{{ route('products.index') }}" class="btn btn-secondary mb-3">← Quay lại</a>
+    <a href="{{ route('admin.products.index') }}" class="btn btn-secondary mb-3">← Quay lại</a>
 
 ```
 <div class="card p-4 shadow-sm">

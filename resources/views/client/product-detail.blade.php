@@ -73,7 +73,6 @@ if (!function_exists('colorToCss')) {
             </p>
             <!-- Chọn màu sắc -->
             @if($colors->count())
-<<<<<<< HEAD
             <div class="mb-3">
                 <label class="fw-bold d-block mb-2">Màu sắc:</label>
                 <div class="d-flex align-items-center">
@@ -121,7 +120,7 @@ if (!function_exists('colorToCss')) {
 
             <!-- Thêm vào giỏ -->
             <div class="d-flex gap-3 mb-3">
-                <form action="{{ route('cart.add') }}" method="POST" id="buyForm">
+                <form action="{{ route('client.cart.add') }}" method="POST" id="buyForm">
                     @csrf
                     <input type="hidden" name="variant_id" id="variant-id">
                     <input type="hidden" name="quantity" id="input-quantity" value="1">
@@ -150,7 +149,7 @@ if (!function_exists('colorToCss')) {
 
             {{-- Form gửi bình luận (yêu cầu đăng nhập) --}}
                 @if(auth('client')->check())
-                    <form action="{{ route('product.comment.store', $product->id) }}" method="POST" class="mb-4">
+                    <form action="{{ route('client.product.comment.store', $product->id) }}" method="POST" class="mb-4">
                         @csrf
                         <div class="mb-2">
                             <label class="form-label">Đánh giá</label>
@@ -233,7 +232,7 @@ if (!function_exists('colorToCss')) {
                             <p class="text-muted mb-2">Liên hệ</p>
                         @endif
 
-                        <a href="{{ route('product.show', $item->id) }}" 
+                        <a href="{{ route('products.show', $item->id) }}" 
                            class="btn btn-outline-primary btn-sm">
                             Xem chi tiết
                         </a>

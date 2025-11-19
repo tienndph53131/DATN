@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
+    // The existing show method
     public function show(Product $product)
     {
         // Tăng lượt xem sản phẩm

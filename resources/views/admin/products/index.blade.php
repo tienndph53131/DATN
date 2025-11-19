@@ -5,7 +5,7 @@
 @section('content')
 <div class="container mt-4">
     <h2>Danh sách sản phẩm</h2>
-    <a href="{{ route('products.create') }}" class="btn btn-primary mb-3">+ Thêm sản phẩm</a>
+    <a href="{{ route('admin.products.create') }}" class="btn btn-primary mb-3">+ Thêm sản phẩm</a>
 
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
@@ -61,9 +61,9 @@
                     <td>{{ $pro->status ? 'còn' : 'hết hàng' }}</td>
                     <td>{{ $pro->created_at->format('d/m/Y') }}</td> <!-- Chỉ lấy ngày -->
                     <td>
-                         <a href="{{ route('products.show', $pro->id) }}" class="btn btn-info btn-sm">Xem</a>
-                        <a href="{{ route('products.edit', $pro->id) }}" class="btn btn-warning btn-sm">Sửa</a>
-                        <form action="{{ route('products.destroy', $pro->id) }}" method="POST" class="d-inline">
+                         <a href="{{ route('admin.products.show', $pro->id) }}" class="btn btn-info btn-sm">Xem</a>
+                        <a href="{{ route('admin.products.edit', $pro->id) }}" class="btn btn-warning btn-sm">Sửa</a>
+                        <form action="{{ route('admin.products.destroy', $pro->id) }}" method="POST" class="d-inline">
                             @csrf
                             @method('DELETE')
                             <button onclick="return confirm('Xóa sản phẩm này?')" class="btn btn-danger btn-sm">Xóa</button>

@@ -52,7 +52,7 @@ class AttributeValueController extends Controller
 
         AttributeValue::create($request->all());
 
-        return redirect()->route('attribute_values.index')->with('success', 'Thêm giá trị thành công!');
+        return redirect()->route('admin.attribute_values.index')->with('success', 'Thêm giá trị thành công!');
     }
 
     // Form sửa
@@ -94,7 +94,7 @@ class AttributeValueController extends Controller
         $value = AttributeValue::findOrFail($id);
         $value->update($request->all());
 
-        return redirect()->route('attribute_values.index')->with('success', 'Cập nhật thành công!');
+        return redirect()->route('admin.attribute_values.index')->with('success', 'Cập nhật thành công!');
     }
 
     // Xóa
@@ -102,6 +102,6 @@ class AttributeValueController extends Controller
     {
         $value = AttributeValue::findOrFail($id);
         $value->delete();
-        return redirect()->route('attribute_values.index')->with('success', 'Xóa thành công!');
+        return redirect()->route('admin.attribute_values.index')->with('success', 'Xóa thành công!');
     }
 }

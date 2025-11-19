@@ -26,7 +26,7 @@
             <tbody>
                 @foreach($cart as $item)
                     @php
-                        $variantId = $item->product_variant_id;
+                        $variantId = $item->variant_id;
                         $image = asset('uploads/products/' . ($item->productVariant->product->image ?? 'default.jpg'));
                         $productName = $item->productVariant->product->name;
                         $variant = $item->productVariant->attributeValues->pluck('value')->join(', ');
@@ -68,7 +68,7 @@
                 <a href="{{ url('/') }}" class="btn btn-outline-dark fw-bold text-uppercase px-4">
                     Tiếp tục mua sắm
                 </a>
-                <a href="{{ route('checkout.index') }}" class="btn btn-success fw-bold text-uppercase px-4">
+                <a href="{{ route('client.checkout.index') }}" class="btn btn-success fw-bold text-uppercase px-4">
                         Thanh toán
                     </a>
             </div>
@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
             errorDiv.style.display = 'none';
         }
 
-        fetch("{{ route('cart.update') }}", {
+        fetch("{{ route('client.cart.update') }}", {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const tr = this.closest('tr');
             const variantId = tr.dataset.variant;
 
-            fetch("{{ route('cart.remove') }}", {
+            fetch("{{ route('client.cart.remove') }}", {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',

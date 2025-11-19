@@ -35,7 +35,7 @@ class CategoryController extends Controller
 
     Category::create($request->only(['name', 'description']));
 
-    return redirect()->route('categories.index')->with('success', 'Thêm danh mục thành công!');
+    return redirect()->route('admin.categories.index')->with('success', 'Thêm danh mục thành công!');
 }
 
 
@@ -61,19 +61,19 @@ class CategoryController extends Controller
 
         $category->update($request->all());
 
-        return redirect()->route('categories.index')->with('success', 'Cập nhật danh mục thành công!');
+        return redirect()->route('admin.categories.index')->with('success', 'Cập nhật danh mục thành công!');
     }
 
 
    public function destroy(Category $category)
 {
     if ($category->products()->count() > 0) {
-        return redirect()->route('categories.index')
+        return redirect()->route('admin.categories.index')
             ->with('error', 'Danh mục này còn sản phẩm, không thể xóa!');
     }
 
     $category->delete();
-    return redirect()->route('categories.index')->with('success', 'Xóa danh mục thành công!');
+    return redirect()->route('admin.categories.index')->with('success', 'Xóa danh mục thành công!');
 }
 
 }

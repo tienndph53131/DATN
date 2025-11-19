@@ -70,14 +70,18 @@ class AuthController extends Controller
 
         if (Auth::guard('client')->attempt($credentials)) {
             $request->session()->regenerate();
-
+ 
             $user = Auth::guard('client')->user();
-
-            // Nếu là admin → vào trang admin
+ 
+            // Chỉ cho phép người dùng (không phải admin) đăng nhập ở đây
             if ($user->role_id == 1) {
-                return redirect()->route('admin.dashboard')->with('success', 'Chào mừng Admin!');
+                // Nếu là admin, đăng xuất khỏi guard 'client' và báo lỗi
+                Auth::guard('client')->logout();
+                return back()->withErrors([
+                    'email' => 'Tài khoản quản trị viên không thể đăng nhập tại đây.',
+                ])->onlyInput('email');
             }
-
+ 
             // Nếu là user → về trang chủ
             return redirect()->route('home')->with('success', 'Đăng nhập thành công!');
         }

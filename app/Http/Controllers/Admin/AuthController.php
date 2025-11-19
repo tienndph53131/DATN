@@ -10,7 +10,7 @@ class AuthController extends Controller
 {
     public function showLoginForm()
     {
-        if (Auth::check() && Auth::user()->role_id == 1) {
+        if (Auth::guard('admin')->check()) { // Kiểm tra xem admin đã đăng nhập chưa
             return redirect()->route('admin.dashboard');
         }
         return view('admin.auth.login');
@@ -27,9 +27,9 @@ class AuthController extends Controller
             'password.required' => 'Vui lòng nhập mật khẩu',
         ]);
 
-        if (Auth::attempt($credentials)) {
-            if (Auth::user()->role_id != 1) {
-                Auth::logout();
+        if (Auth::guard('admin')->attempt($credentials)) { // Thử đăng nhập bằng guard 'admin'
+            if (Auth::guard('admin')->user()->role_id != 1) { // Kiểm tra role_id sau khi đăng nhập thành công
+                Auth::guard('admin')->logout(); // Đăng xuất khỏi guard 'admin'
                 return back()->withErrors([
                     'email' => 'Bạn không có quyền truy cập vào trang quản trị.',
                 ]);
@@ -46,9 +46,9 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::logout();
+        Auth::guard('admin')->logout(); // Đăng xuất khỏi guard 'admin'
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/');
+        return redirect()->route('admin.login'); // Chuyển hướng về trang đăng nhập admin
     }
 }

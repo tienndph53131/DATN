@@ -16,7 +16,7 @@
         </div>
     @endif
 
-    <form action="{{ route('accounts.store') }}" method="POST">
+    <form action="{{ route('admin.accounts.store') }}" method="POST">
         @csrf
         <div class="mb-3">
             <label for="name" class="form-label">Tên</label>
@@ -60,7 +60,7 @@
 
         <div class="mt-4">
             <button type="submit" class="btn btn-primary">Tạo tài khoản</button>
-            <a href="{{ route('accounts.index') }}" class="btn btn-secondary">Hủy</a>
+            <a href="{{ route('admin.accounts.index') }}" class="btn btn-secondary">Hủy</a>
         </div>
     </form>
 </div>

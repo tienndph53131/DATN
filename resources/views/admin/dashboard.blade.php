@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -24,7 +24,7 @@
                     <div class="card-body">
                         <h5 class="card-title">Quản lý danh mục</h5>
                         <p class="card-text">Truy cập nhanh vào danh mục sản phẩm.</p>
-                        <a href="{{ url('/admin/categories') }}" class="btn btn-primary">Danh mục</a>
+                        <a href="{{ route('admin.categories.index') }}" class="btn btn-primary">Danh mục</a>
                     </div>
                 </div>
             </div>
@@ -33,7 +33,7 @@
                     <div class="card-body">
                         <h5 class="card-title">Quản lý sản phẩm</h5>
                         <p class="card-text">Thêm / chỉnh sửa sản phẩm.</p>
-                        <a href="{{ url('/admin/products') }}" class="btn btn-primary">Sản phẩm</a>
+                        <a href="{{ route('admin.products.index') }}" class="btn btn-primary">Sản phẩm</a>
                     </div>
                 </div>
             </div>
@@ -42,7 +42,7 @@
                     <div class="card-body">
                         <h5 class="card-title">Quản lý tài khoản</h5>
                         <p class="card-text">Thêm / chỉnh sửa tài khoản người dùng.</p>
-                        <a href="{{ route('accounts.index') }}" class="btn btn-primary">Tài khoản</a>
+                        <a href="{{ route('admin.accounts.index') }}" class="btn btn-primary">Tài khoản</a>
                     </div>
                 </div>
             </div>
@@ -50,4 +50,4 @@
     </div>
 @endsection
 </body>
-</html>
+</html> -->

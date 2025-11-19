@@ -73,7 +73,7 @@ class AccountController extends Controller
             'status' => $request->status,
         ]);
 
-        return redirect()->route('accounts.index')->with('success', 'Tạo tài khoản thành công.');
+        return redirect()->route('admin.accounts.index')->with('success', 'Tạo tài khoản thành công.');
     }
 
     /**
@@ -114,7 +114,7 @@ class AccountController extends Controller
 
         $account->update($data);
 
-        return redirect()->route('accounts.index')->with('success', 'Cập nhật tài khoản thành công.');
+        return redirect()->route('admin.accounts.index')->with('success', 'Cập nhật tài khoản thành công.');
     }
 
     /**
@@ -128,10 +128,10 @@ class AccountController extends Controller
         // For now, we'll just change the status to deactive.
 
         if ($account->id === auth()->id()) {
-            return redirect()->route('accounts.index')->with('error', 'Bạn không thể vô hiệu hóa chính mình.');
+            return redirect()->route('admin.accounts.index')->with('error', 'Bạn không thể vô hiệu hóa chính mình.');
         }
 
         $account->update(['status' => 0]);
-        return redirect()->route('accounts.index')->with('success', 'Vô hiệu hóa tài khoản thành công.');
+        return redirect()->route('admin.accounts.index')->with('success', 'Vô hiệu hóa tài khoản thành công.');
     }
 }

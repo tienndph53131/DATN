@@ -32,6 +32,10 @@ return [
             'driver' => 'session',
             'provider' => 'accounts',
         ],
+        'admin' => [ // Thêm guard admin
+            'driver' => 'session',
+            'provider' => 'accounts',
+        ],
 
         'api' => [
             'driver' => 'token',

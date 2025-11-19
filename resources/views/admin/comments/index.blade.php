@@ -10,7 +10,7 @@
 
     <div class="card">
         <div class="card-body table-responsive">
-            <form id="bulkForm" action="{{ route('comments.bulk') }}" method="POST">
+            <form id="bulkForm" action="{{ route('admin.comments.bulk') }}" method="POST">
                 @csrf
                 <div class="d-flex mb-3 gap-2">
                     <input type="text" name="q" value="{{ request('q') }}" placeholder="Tìm kiếm nội dung/sản phẩm/người dùng" class="form-control form-control-sm" style="width:320px">
@@ -25,7 +25,7 @@
                             <option value="{{ $r }}" {{ request('rating') == $r ? 'selected' : '' }}>{{ $r }}★</option>
                         @endfor
                     </select>
-                    <button type="submit" formaction="{{ route('comments.index') }}" formmethod="GET" class="btn btn-sm btn-outline-primary">Lọc</button>
+                    <button type="submit" formaction="{{ route('admin.comments.index') }}" formmethod="GET" class="btn btn-sm btn-outline-primary">Lọc</button>
 
                     <div class="ms-auto d-flex gap-2">
                         <select id="bulk-action" name="action" class="form-select form-select-sm" style="width:160px">
@@ -82,7 +82,7 @@
                                 @endif
                             </td>
                             <td>
-                                <a href="{{ route('comments.edit', $comment->id) }}" class="btn btn-sm btn-info">Chỉnh sửa</a>
+                                <a href="{{ route('admin.comments.edit', $comment->id) }}" class="btn btn-sm btn-info">Chỉnh sửa</a>
                                 <button type="button" class="btn btn-sm btn-{{ $comment->status ? 'warning' : 'success' }} toggleStatusBtn" data-id="{{ $comment->id }}" data-status="{{ $comment->status ? 1 : 0 }}">{{ $comment->status ? 'Tắt' : 'Duyệt' }}</button>
 
                                 <button type="button" class="btn btn-sm btn-danger deleteBtn" data-id="{{ $comment->id }}">Xóa</button>
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 bulkBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang xử lý...';
             }
 
-            const resp = await fetch('{{ route('comments.bulk') }}', {
+            const resp = await fetch('{{ route('admin.comments.bulk') }}', {
                 method: 'POST',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 body: formData
