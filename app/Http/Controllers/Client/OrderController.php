@@ -96,7 +96,7 @@ class OrderController extends Controller
     }
 
     // Cập nhật trạng thái sang Hủy đơn hàng
-    $order->status_id = 9; // 11 = Hủy đơn hàng
+    $order->status_id = 9; // 9 = Hủy đơn hàng
     $order->save();
 
     return back()->with('success', 'Bạn đã hủy đơn hàng thành công.');

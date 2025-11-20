@@ -47,4 +47,9 @@ class Order extends Model
     {
         return $this->belongsTo(PaymentStatus::class, 'payment_status_id', 'id');
     }
+    public function getRouteKeyName()
+{
+    return 'order_code';
+}
+
 }
