@@ -1,40 +1,29 @@
 <?php
 
-use App\Http\Controllers\Client\CheckoutController;
 use Illuminate\Support\Facades\Route;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
-
+// Admin
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\AttributeValueController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\CommentController;
 use App\Http\Controllers\Admin\AccountController;
+// Client
 use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\CartController;
 use App\Http\Controllers\Client\AuthController;
 use App\Http\Controllers\Client\ProfileController;
-// use App\Http\Controllers\Client\CheckoutController;
+use App\Http\Controllers\Client\CheckoutController;
 use App\Http\Controllers\Client\OrderController;
 
- 
+
 Route::prefix('admin')->group(function () {
     Route::resource('categories', CategoryController::class);
-   Route::resource('products', ProductController::class);
-  Route::resource('attribute_values', AttributeValueController::class);
-  Route::resource('comments', CommentController::class);
- Route::resource('accounts', AccountController::class)->except(['create', 'store']);
- Route::resource('orders', AdminOrderController::class);
+    Route::resource('products', ProductController::class);
+    Route::resource('attribute_values', AttributeValueController::class);
+    Route::resource('comments', CommentController::class);
+    Route::resource('accounts', AccountController::class)->except(['create', 'store']);
+    Route::resource('orders', AdminOrderController::class);
 });
 // Admin bulk actions for comments
 Route::post('admin/comments/bulk', [CommentController::class, 'bulk'])->name('comments.bulk');
@@ -42,23 +31,26 @@ Route::post('admin/comments/bulk', [CommentController::class, 'bulk'])->name('co
 Route::post('/product/{id}/comments', [CommentController::class, 'store'])
     ->name('product.comment.store')
     ->middleware('auth:client');
+
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/category/{id}', [HomeController::class, 'showCategory'])->name('category.show');
 Route::get('/product/{id}', [HomeController::class, 'showProduct'])->name('product.show');
+
+// CART
 Route::prefix('cart')->group(function () {
     Route::post('/add', [CartController::class, 'add'])->name('cart.add');
     Route::get('/', [CartController::class, 'index'])->name('cart.index');
     Route::post('/remove', [CartController::class, 'remove'])->name('cart.remove');
     Route::post('/update', [CartController::class, 'update'])->name('cart.update');
 });
-
+// AUTH
 Route::get('/login', [AuthController::class, 'showLogin'])->name('client.login');
 Route::post('/login', [AuthController::class, 'login'])->name('client.login.post');
-
 Route::get('/register', [AuthController::class, 'showRegister'])->name('client.register');
 Route::post('/register', [AuthController::class, 'register'])->name('client.register.post');
-
 Route::post('/logout', [AuthController::class, 'logout'])->name('client.logout');
+
+// PROFILE & CHECKOUT
 Route::middleware('auth:client')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -67,8 +59,6 @@ Route::middleware('auth:client')->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout', [CheckoutController::class, 'checkout'])->name('checkout.process');
 });
-
-Route::get('/order', [OrderController::class,'index'])->name('orders.index');
 
 // MoMo
 Route::post('/momo_payment', [CheckoutController::class, 'momopayment'])->name('momo.payment');
@@ -80,17 +70,15 @@ Route::get('/order/success', function () {
 // VNPay
 Route::post('/vnpay_payment', [CheckoutController::class, 'vnpay_payment'])->name('vnpay.payment');
 Route::get('/vnpay/return', [CheckoutController::class, 'vnpayReturn'])->name('vnpay.return');
+
+// Don hang
+Route::get('/order', [OrderController::class, 'index'])->name('orders.index');
 // Lịch sử đơn hàng (chỉ client đã đăng nhập)
 Route::middleware('auth:client')->group(function () {
     Route::prefix('order-history')->group(function () {
         Route::get('/', [OrderController::class, 'history'])->name('order.history');
         Route::get('/{order_code}', [OrderController::class, 'detail'])->name('order.history.detail');
-         Route::post('/order-history/{order_code}/cancel', [OrderController::class, 'cancel'])
-        ->name('order.cancel');
+        Route::post('/order-history/{order_code}/cancel', [OrderController::class, 'cancel'])
+            ->name('order.cancel');
     });
 });
-
-
-});
-
-

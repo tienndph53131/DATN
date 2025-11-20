@@ -9,12 +9,9 @@ use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\OrderSuccessMail;
 
 class CheckoutController extends Controller
 {
-     
     public function index()
     {
         $account = auth()->user();
@@ -157,7 +154,6 @@ class CheckoutController extends Controller
 
         $endpoint = "https://test-payment.momo.vn/v2/gateway/api/create";
 
-
         $partnerCode = 'MOMOBKUN20180529';
         $accessKey = 'klm05TvNBzhg7h7j';
         $secretKey = 'at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa';
@@ -174,8 +170,8 @@ class CheckoutController extends Controller
         $redirectUrl = route('momo.return');
         $ipnUrl = route('momo.ipn');
         $extraData = "";
-        $rawHash = "accessKey=" . $accessKey . "&amount=" . $amount . "&extraData=" . $extraData . "&ipnUrl=" . $ipnUrl . "&orderId=" . $orderId . "&orderInfo=" . $orderInfo . "&partnerCode=" . $partnerCode . "&redirectUrl=" . $redirectUrl . "&requestId=" . $requestId . "&requestType=" . $requestType;
-        $signature = hash_hmac("sha256", $rawHash, $secretKey);
+        $rawHash = "accessKey=" . $accessKey . "&amount=" . $amount . "&extraData=" . $extraData . "&ipnUrl=" . $ipnUrl . "&orderId=" . $orderId . "&orderInfo=" . $orderInfo . "&partnerCode=" . $partnerCode . "&redirectUrl=" . $redirectUrl . "&requestId=" . $requestId . "&requestType=" . $requestType; // chuoi sap xep theo key=value
+        $signature = hash_hmac("sha256", $rawHash, $secretKey); // tao chu ki bao mat tranh gia mao 
         $data = array(
             'partnerCode' => $partnerCode,
             'partnerName' => "Test",
@@ -222,7 +218,7 @@ class CheckoutController extends Controller
                 'note' => $data['note'] ?? null,
                 'payment_id' => $data['payment_id'],
                 'status_id' => 1,
-                 'payment_status_id' => 2, // Thanh toán online → đã thanh toán
+                'payment_status_id' => 2, // Thanh toán online → đã thanh toán
             ]);
             foreach ($data['cart_details'] as $item) {
                 DB::table('order_details')->insert([
@@ -380,22 +376,22 @@ class CheckoutController extends Controller
                     'payment_status_id' => 2, // Thanh toán online → đã thanh toán
                 ]);
                 foreach ($data['cart_details'] as $item) {
-    DB::table('order_details')->insert([
-        'order_id' => $order->id,
-        'product_variant_id' => $item['product_variant_id'],
-        'product_id' => $item['product_id'],
-        'quantity' => $item['quantity'],
-        'price' => $item['price'],
-        'amount' => $item['amount'],
-    ]);
+                    DB::table('order_details')->insert([
+                        'order_id' => $order->id,
+                        'product_variant_id' => $item['product_variant_id'],
+                        'product_id' => $item['product_id'],
+                        'quantity' => $item['quantity'],
+                        'price' => $item['price'],
+                        'amount' => $item['amount'],
+                    ]);
 
-    $variant = \App\Models\ProductVariant::find($item['product_variant_id']);
-    if (!$variant || $variant->stock_quantity < $item['quantity']) {
-        throw new \Exception('Sản phẩm không đủ tồn kho.');
-    }
+                    $variant = \App\Models\ProductVariant::find($item['product_variant_id']);
+                    if (!$variant || $variant->stock_quantity < $item['quantity']) {
+                        throw new \Exception('Sản phẩm không đủ tồn kho.');
+                    }
 
-    $variant->decrement('stock_quantity', $item['quantity']);
-}
+                    $variant->decrement('stock_quantity', $item['quantity']);
+                }
 
                 $cart = Cart::where('account_id', $data['account_id'])->first();
                 if ($cart) {
@@ -413,5 +409,4 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Thanh toán thất bại');
         }
     }
-
 }
