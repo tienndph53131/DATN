@@ -38,7 +38,7 @@ class Order extends Model
     {
         return $this->belongsTo(Payment::class, 'payment_id');
     }
-     public function status()
+    public function status()
     {
         return $this->belongsTo(OrderStatus::class, 'status_id');
     }
@@ -46,5 +46,9 @@ class Order extends Model
     public function paymentStatus()
     {
         return $this->belongsTo(PaymentStatus::class, 'payment_status_id', 'id');
+    }
+    public function getRouteKeyName()
+    {
+        return 'order_code';
     }
 }

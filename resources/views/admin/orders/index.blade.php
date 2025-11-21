@@ -5,6 +5,30 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3 text-dark">Danh Sách Đơn Hàng</h1>
         </div>
+        <form action="{{ route('orders.index') }}" method="GET" class="mb-4">
+        <div class="row align-items-end">
+            <div class="col-md-3">
+                <label for="status_id" class="form-label">Lọc theo trạng thái:</label>
+                <select name="status_id" id="status_id" class="form-select">
+                    <option value="">-- Tất cả trạng thái --</option>
+                    {{-- Lặp qua danh sách trạng thái để tạo options --}}
+                    @foreach($status as $s)
+                        <option 
+                            value="{{ $s->id }}" 
+                            {{-- Giữ lại lựa chọn hiện tại sau khi lọc --}}
+                            {{ $filterStatusId == $s->id ? 'selected' : '' }}
+                        >
+                            {{ $s->status_name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-auto">
+                <button type="submit" class="btn btn-primary">Lọc</button>
+                <a href="{{ route('orders.index') }}" class="btn btn-secondary">Đặt lại</a>
+            </div>
+        </div>
+    </form>
 
         <div class="row mb-3">
             <div class="col-md-6 mb-2">
@@ -76,8 +100,8 @@
                                 </span>
                             </td>
                             <td>
-                                <a href="#" class="btn btn-sm btn-primary">sửa</a>
-                                <a href="#" class="btn btn-sm btn-primary">Chi tiết</a>
+                               
+                               <a href="{{ route('orders.show', $order) }}" class="btn btn-sm btn-primary">Thao tác</a>
                             </td>
                         </tr>
                     @endforeach
@@ -95,4 +119,10 @@
             })
         })
     </script>
+
+<div class="d-flex justify-content-center mt-4">
+    <nav aria-label="Order Pagination">
+        {{ $orders->links('pagination::bootstrap-5') }} 
+    </nav>
+</div>
 @endsection
