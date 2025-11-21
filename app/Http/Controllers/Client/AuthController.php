@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
@@ -65,35 +66,27 @@ class AuthController extends Controller
             'email.required' => 'Vui lòng nhập email.',
             'password.required' => 'Vui lòng nhập mật khẩu.',
         ]);
-         // Thêm điều kiện status = 1
-    $credentials = [
-        'email' => $request->email,
-        'password' => $request->password,
-        'status' => 1, // chỉ cho phép tài khoản đang hoạt động
-    ];
-
-
-       
+        // Thêm điều kiện status = 1
+        $credentials = [
+            'email' => $request->email,
+            'password' => $request->password,
+            'status' => 1, // chỉ cho phép tài khoản đang hoạt động
+        ];
 
         if (Auth::guard('client')->attempt($credentials)) {
             $request->session()->regenerate();
-
             $user = Auth::guard('client')->user();
-
-            // Nếu là admin → vào trang admin
-            if ($user->role_id == 1) {
-                return redirect()->route('admin.dashboard')->with('success', 'Chào mừng Admin!');
+            // Nếu là admin va nhan vien → vào trang admin
+            if ($user->role_id == 1 || $user->role_id == 3) {
+                return redirect()->route('products.index')->with('success', 'Chào mừng:' . $user->name);
             }
-
             // Nếu là user → về trang chủ
             return redirect()->route('home')->with('success', 'Đăng nhập thành công!');
         }
-
         return back()->withErrors([
             'email' => 'Email hoặc mật khẩu không chính xác hoặc tài khoản đã bị vô hiệu hóa.',
         ])->onlyInput('email');
     }
-
     /**
      * Đăng xuất
      */

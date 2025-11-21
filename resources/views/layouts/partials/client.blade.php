@@ -24,7 +24,11 @@
 
     {{-- Header --}}
     @include('layouts.partials.header')
-
+    @if (session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+    @endif
     {{-- Nội dung từng trang --}}
     @yield('content')
 

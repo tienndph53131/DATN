@@ -17,7 +17,7 @@ use App\Http\Controllers\Client\CheckoutController;
 use App\Http\Controllers\Client\OrderController;
 
 
-Route::prefix('admin')->group(function () {
+Route::prefix('admin')->middleware('admin')->group(function () {
     Route::resource('categories', CategoryController::class);
     Route::resource('products', ProductController::class);
     Route::resource('attribute_values', AttributeValueController::class);

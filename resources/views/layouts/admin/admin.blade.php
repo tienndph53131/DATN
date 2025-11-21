@@ -56,7 +56,7 @@
 <body>
 
 <div class="sidebar">
-    <h4 class="text-center mb-4"><i class="fa-solid fa-user-shield"></i> ADMIN</h4>
+    <h4 class="text-center mb-4"><i class="fa-solid fa-user-shield"></i></h4>
     <a href="{{ url('/admin') }}" class="{{ request()->is('admin') ? 'active' : '' }}"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
     <a href="{{ url('/admin/categories') }}" class="{{ request()->is('admin/categories*') ? 'active' : '' }}"><i class="fa-solid fa-layer-group"></i> Danh mục</a>
     <a href="{{ url('/admin/products') }}" class="{{ request()->is('admin/products*') ? 'active' : '' }}"><i class="fa-solid fa-shirt"></i> Sản phẩm</a>
