@@ -35,6 +35,10 @@ class AccountController extends Controller
     // 👁 Xem chi tiết
     public function show($id)
     {
+        $currentUser = auth()->guard('client')->user();
+        if ($currentUser->role_id != 1) {
+            abort(403, 'Bạn không có quyền truy cập');
+        }
         $account = Account::findOrFail($id);
 
         // Ẩn admin (không cho xem thông tin admin)
@@ -42,15 +46,19 @@ class AccountController extends Controller
             return redirect()->route('accounts.index')->with('error', 'Không thể xem thông tin tài khoản admin!');
         }
 
-        return view('admin.accounts.show', compact('account'));
+        return view('admin.accounts.show', compact('account', 'currentUser'));
     }
 
     // 🖋 Form sửa
     public function edit($id)
     {
+        $currentUser = auth()->guard('client')->user();
+        if ($currentUser->role_id != 1) {
+            abort(403, 'Bạn không có quyền truy cập');
+        }
         $account = Account::findOrFail($id);
         $roles = Role::where('name', '!=', 'admin')->get();
-        return view('admin.accounts.edit', compact('account', 'roles'));
+        return view('admin.accounts.edit', compact('account', 'roles', 'currentUser'));
     }
 
     // 💾 Cập nhật
@@ -83,6 +91,10 @@ class AccountController extends Controller
     // 🗑️ Xóa
     public function destroy($id)
     {
+        $currentUser = auth()->guard('client')->user();
+        if ($currentUser->role_id != 1) {
+            abort(403, 'Bạn không có quyền xóa');
+        }
         $account = Account::findOrFail($id);
         if ($account->role && $account->role->name === 'admin') {
             return redirect()->route('accounts.index')->with('error', 'Không thể xóa tài khoản admin!');

@@ -32,9 +32,7 @@
                     <th>Giới tính</th>
                     <th>Vai trò</th>
                     <th>Trạng thái</th>
-                    @if ($currentUser && $currentUser->role_id == 1)
-                        <th>Hành động</th>
-                    @endif
+                    <th>Hành động</th>
                 </tr>
             </thead>
             <tbody>
@@ -63,17 +61,15 @@
                                 {{ $account->status ? 'Active' : 'Inactive' }}
                             </span>
                         </td>
-                        @if ($currentUser && $currentUser->role_id == 1)
-                            <td class="text-center">
-                                <a href="{{ route('accounts.show', $account->id) }}" class="btn btn-sm btn-info">Xem</a>
-                                <a href="{{ route('accounts.edit', $account->id) }}" class="btn btn-sm btn-warning">Sửa</a>
-                                <form action="{{ route('accounts.destroy', $account->id) }}" method="POST" class="d-inline"
-                                    onsubmit="return confirm('Bạn chắc chắn muốn xóa tài khoản này?')">
-                                    @csrf @method('DELETE')
-                                    <button class="btn btn-sm btn-danger">Xóa</button>
-                                </form>
-                            </td>
-                        @endif
+                        <td class="text-center">
+                            <a href="{{ route('accounts.show', $account->id) }}" class="btn btn-sm btn-info">Xem</a>
+                            <a href="{{ route('accounts.edit', $account->id) }}" class="btn btn-sm btn-warning">Sửa</a>
+                            <form action="{{ route('accounts.destroy', $account->id) }}" method="POST" class="d-inline"
+                                onsubmit="return confirm('Bạn chắc chắn muốn xóa tài khoản này?')">
+                                @csrf @method('DELETE')
+                                <button class="btn btn-sm btn-danger">Xóa</button>
+                            </form>
+                        </td>
                     </tr>
                 @empty
                     <tr>

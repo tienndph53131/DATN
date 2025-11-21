@@ -50,6 +50,7 @@ class CheckoutController extends Controller
         // Tạo đơn hàng
         try {
             if ($request->payment_id == 1) {
+                
                 DB::beginTransaction();
                 $order = Order::create([
                     'order_code' => 'DH' . time(),
@@ -229,6 +230,7 @@ class CheckoutController extends Controller
                     'price' => $item['price'],
                     'amount' => $item['amount'],
                 ]);
+                
             }
 
             $cart = Cart::where('account_id', $data['account_id'])->first(); // lay cart theo account_id luu trong session momo_order
