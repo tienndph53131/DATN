@@ -51,7 +51,7 @@
                     <th>Trạng thái</th>
                     <td>
                         <span class="badge bg-{{ $staff->status ? 'success' : 'secondary' }}">
-                            {{ $staff->statut ? 'Hoạt động' : 'Ngừng hoạt động' }}
+                            {{ $staff->status ? 'Hoạt động' : 'Ngừng hoạt động' }}
                         </span>
                     </td>
                 </tr>
@@ -66,8 +66,8 @@
             </table>
 
             <div class="d-flex justify-content-between mt-3">
-                <a href="{{ route('staffs.edit', $staff->id) }}" class="btn btn-warning">Sửa</a>
-                <a href="{{ route('staffs.index') }}" class="btn btn-secondary">Quay lại danh sách</a>
+                <a href="{{ route('staff.edit', $staff->id) }}" class="btn btn-warning">Sửa</a>
+                <a href="{{ route('staff.index') }}" class="btn btn-secondary">Quay lại danh sách</a>
             </div>
         </div>
     </div>

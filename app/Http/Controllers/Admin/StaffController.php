@@ -24,10 +24,10 @@ class StaffController extends Controller
     }
     public function create()
     {
-        // $currentUser = auth()->guard('client')->user();
-        // if ($currentUser->role_id != 1) {
-        //     abort(403, 'Bạn không có quyền truy cập');
-        // }
+        $currentUser = auth()->guard('client')->user();
+        if ($currentUser->role_id != 1) {
+            abort(403, 'Bạn không có quyền truy cập');
+        }
         return view('admin.staff.create');
     }
     public function store(Request $request)
@@ -100,6 +100,6 @@ class StaffController extends Controller
         }
         $staff = Account::where('role_id', 3)->find($id);
         $staff->delete();
-        return redirect()->route('staff.index')->with('success', 'Cập nhật nhân viên thành công!');
+        return redirect()->route('staff.index')->with('success', 'Xóa nhân viên thành công!');
     }
 }

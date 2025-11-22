@@ -6,13 +6,14 @@
     @endphp
     <div class="container mt-4">
         <h2 class="mb-3">Quản lý tài khoản nhân viên</h2>
-<a href="{{ route('staff.create') }}" class="btn btn-primary">Thêm nhân viên</a>
+        <a href="{{ route('staff.create') }}" class="btn btn-primary">Thêm nhân viên</a>
         <!-- Form tìm kiếm -->
         <form method="GET" action="{{ route('staff.index') }}" class="mb-3 d-flex">
             <input type="text" name="search" class="form-control me-2" placeholder="Tìm kiếm theo tên hoặc email..."
                 value="{{ request('search') }}">
             <button type="submit" class="btn btn-primary">Tìm kiếm</button>
         </form>
+        <a href="{{  route('staff.index')}}" class="btn btn-secondary">Hủy</a>
 
         @if(session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>

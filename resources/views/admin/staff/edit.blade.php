@@ -4,7 +4,7 @@
     <div class="container mt-4">
         <h2 class="mb-4">Sửa tài khoản nhân viên</h2>
 
-        <form action="{{ route('staffs.update', $staff->id) }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('staff.update', $staff->id) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -71,7 +71,7 @@
             <!-- Nút -->
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-success">Cập nhật</button>
-                <a href="{{ route('staffs.index') }}" class="btn btn-secondary">Quay lại</a>
+                <a href="{{ route('staff.index') }}" class="btn btn-secondary">Quay lại</a>
             </div>
         </form>
     </div>
