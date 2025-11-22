@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Address;
 use App\Models\Cart;
 use App\Models\Order;
+use App\Models\ProductVariant;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -50,7 +51,7 @@ class CheckoutController extends Controller
         // Tạo đơn hàng
         try {
             if ($request->payment_id == 1) {
-                
+
                 DB::beginTransaction();
                 $order = Order::create([
                     'order_code' => 'DH' . time(),
@@ -74,6 +75,9 @@ class CheckoutController extends Controller
                         'price' => $item->price,
                         'amount' => $item->amount,
                     ]);
+                    // tao don hang thi tru so luon san pham ton kho
+                    $variant = ProductVariant::find($item['product_variant_id']);
+                    $variant->decrement('stock_quantity', $item['quantity']);
                 }
                 $cart->details()->delete();
                 $cart->delete();  // Xóa giỏ hàng sau khi đặt hàng thành công
@@ -230,7 +234,8 @@ class CheckoutController extends Controller
                     'price' => $item['price'],
                     'amount' => $item['amount'],
                 ]);
-                
+                $variant = ProductVariant::find($item['product_variant_id']);
+                $variant->decrement('stock_quantity', $item['quantity']);
             }
 
             $cart = Cart::where('account_id', $data['account_id'])->first(); // lay cart theo account_id luu trong session momo_order
