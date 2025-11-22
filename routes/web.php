@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\StaffController;
 use Illuminate\Support\Facades\Route;
 // Admin
 use App\Http\Controllers\Admin\CategoryController;
@@ -24,6 +25,7 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::resource('comments', CommentController::class);
     Route::resource('accounts', AccountController::class)->except(['create', 'store']);
     Route::resource('orders', AdminOrderController::class);
+    Route::resource('staff', StaffController::class);
 });
 // Admin bulk actions for comments
 Route::post('admin/comments/bulk', [CommentController::class, 'bulk'])->name('comments.bulk');
