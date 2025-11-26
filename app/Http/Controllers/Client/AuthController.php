@@ -81,9 +81,9 @@ class AuthController extends Controller
             $user = Auth::guard('client')->user();
 
             // Nếu là admin → vào trang admin
-            if ($user->role_id == 1) {
-                return redirect()->route('admin.dashboard')->with('success', 'Chào mừng Admin!');
-            }
+           if ($user->role_id == 1 || $user->role_id == 3) {
+               return redirect()->route('admin.dashboard')->with('success', 'Chào mừng Admin:' . $user->name);            }
+            
 
             // Nếu là user → về trang chủ
             return redirect()->route('home')->with('success', 'Đăng nhập thành công!');

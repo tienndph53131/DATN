@@ -31,16 +31,17 @@
                 </h1>
             </a>
         </div>
-        <div class="col-lg-6 col-6 text-left">
-            <form action="{{ url('/search') }}" method="GET">
-                <div class="input-group">
-                    <input type="text" class="form-control border-primary" name="keyword" placeholder="Tìm kiếm sản phẩm...">
-                    <div class="input-group-append">
-                        <button class="btn btn-primary"><i class="fa fa-search"></i></button>
-                    </div>
-                </div>
-            </form>
+       <div class="col-lg-6 col-6 text-left">
+    <form action="{{ url('/search') }}" method="GET">
+        <div class="input-group">
+            <input type="text" class="form-control border-primary" name="keyword" placeholder="Tìm kiếm sản phẩm...">
+            <div class="input-group-append">
+                <button class="btn btn-primary"><i class="fa fa-search"></i></button>
+            </div>
         </div>
+    </form>
+</div>
+
 
         <!-- 🛒 Giỏ hàng -->
         @if(Auth::guard('client')->check())
@@ -119,6 +120,7 @@
                     <div class="navbar-nav mr-auto py-0">
                         <a href="/" class="nav-item nav-link {{ request()->is('/') ? 'active text-primary' : '' }}">Trang chủ</a>
                         
+                           
                         <a href="/contact" class="nav-item nav-link {{ request()->is('contact') ? 'active text-primary' : '' }}">Liên hệ</a>
                     </div>
 

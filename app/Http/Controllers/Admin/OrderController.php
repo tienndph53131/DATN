@@ -24,7 +24,7 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        $terminalStatuses = [7, 8, 9];
+        $terminalStatuses = [5, 6, 7];
     $terminalStatusesString = implode(', ', $terminalStatuses);
     $filterStatusId = $request->input('status_id') ?? '';
     $query = Order::with('account', 'details.productVariant.product');
@@ -67,6 +67,7 @@ class OrderController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
+            'email' => 'nullable|email|max:255',
             'address_detail' => 'nullable|string|max:255',
             'province' => 'nullable|string|max:255',
             'district' => 'nullable|string|max:255',
@@ -81,9 +82,9 @@ class OrderController extends Controller
         $oldStatusId = (int) $order->status_id;
 
         // --- KHAI BÁO CÁC ID CẦN THIẾT (Giả định) ---
-        $ORDER_SUCCESS_ID = 7; // ID trạng thái đơn hàng "Thành công"
+        $ORDER_SUCCESS_ID = 5; // ID trạng thái đơn hàng "Thành công"
         $PAYMENT_PAID_ID = 2;  //ID trạng thái thanh toán "Đã thanh toán"
-        $terminalStatuses = [7, 8, 9]; // Trạng thái kết thúc: 7 (Thành công), 8 (Hoàn hàng), 9 (Hủy)
+        $terminalStatuses = [5, 6,7]; // Trạng thái kết thúc: 5 (Thành công), 6 (Hoàn hàng), 7 (Hủy)
 
         // --- BẮT ĐẦU LOGIC NGĂN QUAY NGƯỢC TRẠNG THÁI ---
         if (in_array($oldStatusId, $terminalStatuses) && $newStatusId !== $oldStatusId) {
@@ -92,7 +93,7 @@ class OrderController extends Controller
             ]);
         }
 
-        if ($newStatusId < $oldStatusId && $newStatusId !== 9) {
+        if ($newStatusId < $oldStatusId && $newStatusId !== 8) {
             return redirect()->back()->withErrors([
                 'status_id' => 'Không thể quay lại trạng thái trước đó. Trạng thái mới phải lớn hơn hoặc bằng trạng thái hiện tại.'
             ]);
@@ -103,7 +104,7 @@ class OrderController extends Controller
         $order->update([
             'name' => $data['name'],
             'phone' => $data['phone'],
-            'note' => $data['note'] ?? $order->note,
+            'email' => $data['email'],
         ]);
 
         // Cập nhật địa chỉ nếu có (logic giữ nguyên)

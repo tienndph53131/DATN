@@ -19,6 +19,9 @@ use App\Http\Controllers\Admin\AttributeValueController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\CommentController;
 use App\Http\Controllers\Admin\AccountController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\AdminAccountController;
+use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\CartController;
 use App\Http\Controllers\Client\AuthController;
@@ -26,17 +29,29 @@ use App\Http\Controllers\Client\ProfileController;
 use App\Http\Controllers\Client\CheckoutController;
 use App\Http\Controllers\Client\OrderController;
 
+
  
-Route::prefix('admin')->group(function () {
+Route::prefix('admin')->middleware('admin')->group(function () {
+    
+    
+    Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
     Route::resource('categories', CategoryController::class);
    Route::resource('products', ProductController::class);
   Route::resource('attribute_values', AttributeValueController::class);
   Route::resource('comments', CommentController::class);
  Route::resource('accounts', AccountController::class)->except(['create', 'store']);
  Route::resource('orders', AdminOrderController::class);
+  // Chỉ block nhân viên trên module quản lý account
+   Route::resource('accountsadmin', AdminAccountController::class)
+    
+    ->middleware('block.staff.admin');
+
+
 
 
 });
+// tìm kiếm 
+Route::get('/search', [HomeController::class, 'search'])->name('client.search');
 // Admin bulk actions for comments
 Route::post('admin/comments/bulk', [CommentController::class, 'bulk'])->name('comments.bulk');
 // Client comment submission (requires client auth)
@@ -44,6 +59,8 @@ Route::post('/product/{id}/comments', [CommentController::class, 'store'])
     ->name('product.comment.store')
     ->middleware('auth:client');
 Route::get('/', [HomeController::class, 'index'])->name('home');
+  
+
 Route::get('/category/{id}', [HomeController::class, 'showCategory'])->name('category.show');
 Route::get('/product/{id}', [HomeController::class, 'showProduct'])->name('product.show');
 Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');

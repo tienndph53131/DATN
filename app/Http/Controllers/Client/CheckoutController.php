@@ -21,6 +21,9 @@ class CheckoutController extends Controller
 
         $cart = Cart::where('account_id', $account->id)
             ->first();
+            $cartDetails = $cart->details()->with('productVariant.product')->get();
+$total = $cartDetails->sum('amount');
+$address = Address::where('account_id', $account->id)->get();
         if (!$cart) {
             return redirect()->route('cart.index')->with('error', 'Giỏ hàng trống không thể thanh toán');
         }
@@ -33,7 +36,7 @@ class CheckoutController extends Controller
         }
         $address = Address::where('account_id', auth()->id())->get();
         $total = $cartDetails->sum('amount');
-        return view('client.checkout', compact('cartDetails', 'total', 'address'));
+        return view('client.checkout', compact('cartDetails', 'total', 'address','account'));
     }
     public function checkout(Request $request)
     {

@@ -65,7 +65,12 @@
     <i class="fa-solid fa-tag"></i> Giá trị thuộc tính
 </a>
 <a href="{{ route('accounts.index') }}" class="{{ request()->routeIs('accounts.*') ? 'active' : '' }}"><i class="fa-solid fa-users"></i> Người dùng</a>
-    
+{{-- @if(Auth::guard('client')->check() && in_array(Auth::guard('client')->user()->role_id, [1,3])) --}}
+    <a href="{{ route('accountsadmin.index') }}" 
+       class="{{ request()->routeIs('accountsadmin.*') ? 'active' : '' }}">
+       <i class="fa-solid fa-users"></i> Admin / Nhân viên
+    </a>
+{{-- @endif    --}}
      <li><a class="dropdown-item" href="{{ route('comments.index') }}"><i class="fa-solid fa-comments me-2"></i> Quản lý bình luận</a></li>
             <li><hr class="dropdown-divider"></li>
     <a href="{{ url('/') }}"><i class="fa-solid fa-house"></i> Trang chủ</a>

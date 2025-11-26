@@ -42,6 +42,15 @@
                     @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-4">
+                    <label class="form-label">email</label>
+                    <input type="text" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $order->email ?? '') }}">
+                    @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Accuont</label>
+                     <input type="text" class="form-control" value="{{ $order->account->name ?? 'Khách lạ' }}" disabled>
+                </div>
+                <div class="col-md-4">
                     <label class="form-label">Phương thức thanh toán</label>
                     <input type="text" class="form-control" value="{{ $order->payment->payment_method_name ?? '---' }}" disabled>
                 </div>
@@ -78,21 +87,21 @@
                         
                         @php
                             $currentStatusId = $order->status_id;
-                            // Trạng thái kết thúc: 7 (Thành công), 8 (Hoàn hàng), 9 (Hủy đơn hàng)
-                            $terminalStatuses = [7, 8, 9];
+                            // Trạng thái kết thúc: 5 (Thành công), 6 (Hoàn hàng), 7 (Hủy đơn hàng)
+                            $terminalStatuses = [5, 6, 7];
                             // CÁC ID KIỂM TRA MỚI
-                            $ORDER_SHIPPING_ID = 4; // ID "Đang giao"
-                            $ORDER_RECEIVED_ID = 5; // ID "Đã nhận" 
-                            $ORDER_RETURN_ID = 8;   // ID "Hoàn hàng"
-                            $ORDER_CANCEL_ID = 9;   // ID "Hủy đơn hàng"
+                            $ORDER_SHIPPING_ID = 3; // ID "Đang giao"
+                            $ORDER_RECEIVED_ID = 4; // ID "Đã giao" 
+                            $ORDER_RETURN_ID = 6;   // ID "Hoàn hàng"
+                            $ORDER_CANCEL_ID = 7;   // ID "Hủy đơn hàng"
                         @endphp
                         
                         @foreach($status as $s)
                             @php
                                 $isDisabled = false;
                                 
-                                //  Ngăn chặn quay ngược trạng thái (Trừ ID 9 - Hủy)
-                                if ($s->id < $currentStatusId && $s->id != 9) {
+                                //  Ngăn chặn quay ngược trạng thái (Trừ ID 8 - Hủy)
+                                if ($s->id < $currentStatusId && $s->id != 7) {
                                     $isDisabled = true;
                                 }
 
@@ -101,12 +110,12 @@
                                     $isDisabled = true;
                                 }
 
-                                //  CHẶN HOÀN HÀNG (ID 8) NẾU CHƯA ĐẠT ID 5 ("Đã nhận")
-                                // Nếu trạng thái là Hoàn hàng VÀ trạng thái hiện tại nhỏ hơn ID Đã nhận (5)
+                                //  CHẶN HOÀN HÀNG (ID 6) NẾU CHƯA ĐẠT ID 4 ("Đã giao")
+                                // Nếu trạng thái là Hoàn hàng VÀ trạng thái hiện tại nhỏ hơn ID Đã giao (5)
                                 if ($s->id == $ORDER_RETURN_ID && $currentStatusId < $ORDER_RECEIVED_ID) {
                                     $isDisabled = true;
                                 }
-                                // CHẶN HỦY ĐƠN HÀNG (ID 9) NẾU ĐƠN HÀNG ĐÃ GỬI VẬN CHUYỂN (ID 4)
+                                // CHẶN HỦY ĐƠN HÀNG (ID 7) NẾU ĐƠN HÀNG ĐÃ GỬI VẬN CHUYỂN (ID 3)
                               
                                 if ($s->id == $ORDER_CANCEL_ID && $currentStatusId >= $ORDER_SHIPPING_ID) {
                                     $isDisabled = true;

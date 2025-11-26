@@ -4,6 +4,11 @@
 
 @section('content')
 <div class="container py-4">
+    @if (session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+@endif
 
     <h3 class="fw-bold mb-4">Chi tiết đơn hàng: {{ $order->order_code }}</h3>
 

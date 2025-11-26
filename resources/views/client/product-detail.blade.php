@@ -527,4 +527,97 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const buyForm = document.getElementById('buyForm');
+    if (!buyForm) return;
+
+    buyForm.addEventListener('submit', function(e) {
+        e.preventDefault(); // ngăn reload trang
+
+        const formData = new FormData(buyForm);
+
+        fetch(buyForm.action, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': formData.get('_token')
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+    if (data.success) {
+        showCartPopup(data);
+
+        // === CẬP NHẬT HEADER GIỎ HÀNG ===
+        const cartCountEl = document.getElementById('cart-count');
+        const cartTotalEl = document.getElementById('cart-total');
+        if (cartCountEl) cartCountEl.textContent = data.cart_count;
+        if (cartTotalEl) cartTotalEl.textContent = new Intl.NumberFormat('vi-VN').format(data.cart_total) + '₫';
+    } else {
+        alert(data.message || 'Có lỗi xảy ra');
+    }
+})
+
+        .catch(err => {
+            console.error(err);
+            alert('Có lỗi xảy ra, vui lòng thử lại!');
+        });
+    });
+
+    function showCartPopup(data) {
+        // Tạo popup nếu chưa có
+        let popup = document.getElementById('cart-popup');
+        if (!popup) {
+            popup = document.createElement('div');
+            popup.id = 'cart-popup';
+            popup.style.position = 'fixed';
+            popup.style.top = '20px';
+            popup.style.right = '20px';
+            popup.style.backgroundColor = '#fff';
+            popup.style.color = '#333';
+            popup.style.padding = '15px';
+            popup.style.borderRadius = '8px';
+            popup.style.boxShadow = '0 5px 15px rgba(0,0,0,0.3)';
+            popup.style.zIndex = 9999;
+            popup.style.minWidth = '300px';
+            popup.style.opacity = 0;
+            popup.style.transform = 'translateY(-20px)';
+            popup.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            document.body.appendChild(popup);
+        }
+
+        // Nội dung popup
+        popup.innerHTML = `
+            <div style="display:flex; align-items:center; gap:10px;">
+                <img src="${data.product.image}" style="width:60px; height:60px; object-fit:cover; border-radius:5px;">
+                <div style="flex:1">
+                    <strong>${data.product.name}</strong><br>
+                    Số lượng: ${data.product.quantity}<br>
+                    Giá: ${new Intl.NumberFormat('vi-VN').format(data.product.price)}₫
+                </div>
+                <a href="/cart" style="background:#dc3545; color:#fff; padding:5px 10px; border-radius:4px; text-decoration:none; font-size:14px;">Xem giỏ hàng</a>
+            </div>
+        `;
+
+        // Hiển thị popup
+        popup.style.opacity = 1;
+        popup.style.transform = 'translateY(0)';
+
+        // Ẩn popup sau 3 giây
+        setTimeout(() => {
+            popup.style.opacity = 0;
+            popup.style.transform = 'translateY(-20px)';
+        }, 4000);
+
+        // Cập nhật tổng số lượng giỏ hàng nếu có
+        const cartCountEl = document.getElementById('cart-count');
+        if (cartCountEl && data.cart_count !== undefined) {
+            cartCountEl.textContent = data.cart_count;
+        }
+    }
+});
+</script>
+
 @endsection

@@ -333,17 +333,17 @@
 
                         <div class="form-group">
                             <label for="name">Họ và tên</label>
-                            <input type="text" name="name" id="name" placeholder="Nhập họ và tên" required>
+                            <input type="text" name="name" id="name" placeholder="Nhập họ và tên" value="{{ old('name', $account->name ?? '') }}" required>
                         </div>
 
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" name="email" id="email" placeholder="Nhập email" required>
+                            <input type="email" name="email" id="email" placeholder="Nhập email" value="{{ old('email', $account->email ?? '') }}" required>
                         </div>
 
                         <div class="form-group">
                             <label for="phone">Số điện thoại</label>
-                            <input type="text" name="phone" id="phone" placeholder="Nhập số điện thoại" required>
+                            <input type="text" name="phone" id="phone" placeholder="Nhập số điện thoại" value="{{ old('phone', $account->phone ?? '') }}" required>
                         </div>
 
                         <div class="form-group">
