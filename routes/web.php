@@ -47,6 +47,7 @@ Route::post('/product/{id}/comments', [CommentController::class, 'store'])
     ->name('product.comment.store')
     ->middleware('auth:client');
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/shop', [HomeController::class, 'shop'])->name('shop.index');
 Route::get('/category/{id}', [HomeController::class, 'showCategory'])->name('category.show');
 Route::get('/product/{id}', [HomeController::class, 'showProduct'])->name('product.show');
 Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
