@@ -12,7 +12,10 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $categories = Category::orderBy('name')->get();
+        // include active product counts to show next to categories
+        $categories = Category::withCount(['products as active_products_count' => function ($q) {
+            $q->where('status', 1);
+        }])->orderBy('name')->get();
 
         $products = Product::with(['category', 'variants'])
             ->where('status', 1)
@@ -35,6 +38,50 @@ class HomeController extends Controller
             ->paginate(8);
 
         return view('client.category', compact('categories', 'category', 'products'));
+    }
+
+    // Shop listing with optional price filtering
+    public function shop(\Illuminate\Http\Request $request)
+    {
+        $categories = Category::orderBy('name')->get();
+
+        $min = $request->query('min_price');
+        $max = $request->query('max_price');
+        $category = $request->query('category');
+        $sort = $request->query('sort');
+
+        $query = Product::with(['category', 'variants'])
+            ->where('status', 1);
+
+        if ($category) {
+            $query->where('category_id', $category);
+        }
+
+        if ($min !== null || $max !== null) {
+            $query->whereHas('variants', function ($q) use ($min, $max) {
+                if ($min !== null && $min !== '') {
+                    $q->where('price', '>=', floatval($min));
+                }
+                if ($max !== null && $max !== '') {
+                    $q->where('price', '<=', floatval($max));
+                }
+            });
+        }
+
+        // sorting
+        // supported: price_asc, price_desc, newest
+        if ($sort === 'price_asc' || $sort === 'price_desc') {
+            $direction = $sort === 'price_asc' ? 'ASC' : 'DESC';
+            // order by minimum variant price for the product
+            $query->orderByRaw('(SELECT MIN(price) FROM product_variants WHERE product_variants.product_id = products.id) ' . $direction);
+        } else {
+            // default or 'newest'
+            $query->latest('created_at');
+        }
+
+        $products = $query->paginate(12)->appends($request->query());
+
+        return view('client.shop.index', compact('categories', 'products', 'min', 'max'));
     }
 
     // Chi tiết sản phẩm
