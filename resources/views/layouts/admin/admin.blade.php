@@ -82,9 +82,8 @@
         </a>
         <a href="{{ route('accounts.index') }}" class="{{ request()->routeIs('accounts.*') ? 'active' : '' }}"><i
                 class="fa-solid fa-users"></i> Người dùng</a>
-        <a href="{{ route('staff.index') }}" class="{{ request()->routeIs('staff.*') ? 'active' : '' }}">
-            <i class="fa-solid fa-id-card-clip"></i> Nhân viên
-        </a>
+        <a href="{{ url('/admin/discounts') }}" class="{{ request()->is('admin/discounts*') ? 'active' : ''}}"><i
+                class="fa-solid fa-ticket"></i>Mã giảm giá</a>
         <li><a class="dropdown-item" href="{{ route('comments.index') }}"><i class="fa-solid fa-comments me-2"></i> Quản
                 lý bình luận</a></li>
         <li>

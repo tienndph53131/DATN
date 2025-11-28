@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Admin\StaffController;
 use Illuminate\Support\Facades\Route;
 // Admin
 use App\Http\Controllers\Admin\CategoryController;
@@ -9,6 +8,7 @@ use App\Http\Controllers\Admin\AttributeValueController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\CommentController;
 use App\Http\Controllers\Admin\AccountController;
+use App\Http\Controllers\Admin\DiscountController;
 // Client
 use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\CartController;
@@ -25,7 +25,7 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::resource('comments', CommentController::class);
     Route::resource('accounts', AccountController::class)->except(['create', 'store']);
     Route::resource('orders', AdminOrderController::class);
-    Route::resource('staff', StaffController::class);
+    Route::resource('discounts', DiscountController::class);
 });
 // Admin bulk actions for comments
 Route::post('admin/comments/bulk', [CommentController::class, 'bulk'])->name('comments.bulk');
@@ -60,6 +60,7 @@ Route::middleware('auth:client')->group(function () {
     Route::get('/profile/wards', [ProfileController::class, 'getWards'])->name('profile.wards');
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout', [CheckoutController::class, 'checkout'])->name('checkout.process');
+    Route::post('/checkout/apply_discount', [CheckoutController::class, 'applyDiscount'])->name('checkout.applyDiscount');
 });
 
 // MoMo
@@ -84,3 +85,4 @@ Route::middleware('auth:client')->group(function () {
             ->name('order.cancel');
     });
 });
+// Ma giam gia

@@ -308,6 +308,12 @@
         }
     </style>
 
+
+    @php
+        $discountAmount = session('discount_amount', 0);
+        $totalEnd = $total - $discountAmount;
+       
+    @endphp
     <div class="checkout-container">
         <div class="checkout-header">
             <h1>Thanh Toán</h1>
@@ -358,7 +364,6 @@
                             </select>
                         </div>
                         {{-- <input type="hidden" name="payment_id" value="1"> --}}
-
                         <!-- Giỏ hàng -->
                         @if (isset($cartDetails) && count($cartDetails) > 0)
                             <div class="cart-section">
@@ -392,16 +397,19 @@
                                         </tbody>
                                     </table>
                                 </div>
+                                <div class="form-group">
+                                    <label for="discountAmount">Giam gia</label>
+                                    <input type="text" name="discountAmount" id="discountAmount"
+                                        value="{{ number_format($discountAmount) }} VND" readonly>
+                                </div>
                                 <div class="cart-total">
                                     <span class="cart-total-label">Tổng cộng:</span>
-                                    <span class="cart-total-amount">{{ number_format($total) }}đ</span>
+                                    <span class="cart-total-amount">{{ number_format($totalEnd) }}đ</span>
                                 </div>
                             </div>
 
                             <hr>
-
                             <h3>Phương thức thanh toán</h3>
-
                             <div class="form-group">
                                 <select name="payment_id" required>
                                     <option value="1">COD (Thanh toán khi nhận hàng)</option>
@@ -413,16 +421,6 @@
                         @endif
                     </form>
                 </div>
-
-                <!-- MoMo Payment Form -->
-                {{-- <div class="checkout-form-section" style="margin-top: 20px;">
-                    <form action="{{ route('momo.payment') }}" method="post">
-                        @csrf
-                        <input type="hidden" name="total_momo" id="total_momo" value="{{ $total ?? 0 }}">
-                        <input type="hidden" name="payment_id" value="2">
-                        <button type="submit" class="btn btn-secondary">🏦 Thanh Toán MoMo</button>
-                    </form>
-                </div> --}}
             </div>
 
             <!-- Right Column - Order Summary -->
@@ -438,12 +436,29 @@
                     @endforeach
 
                     <div class="summary-divider"></div>
-
+                    <div class="discount-wrapper" style="margin: 24px 0;">
+                        <label for="discount_code"
+                            style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; color: #2d3748;">
+                            <i class="fa fa-ticket" aria-hidden="true" style="margin-right: 5px;"></i> Mã ưu đãi
+                        </label>
+                        <form action="{{ route('checkout.applyDiscount') }}" method="post" class="mb-3">
+                            @csrf
+                            <div class="mb-2">
+                                <label for="discount_code">Ma giam gia</label>
+                                <input type="text" name="discount_code" id="discount_code">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Ap dung</button>
+                    </div>
+                    </form>
+                    @if (session('discount_success'))
+                        <div class="alert alert-success">{{ session('discount_success') }}</div>
+                    @elseif(session('discount_error'))
+                        <div class="alert alert-danger">{{ session('discount_error') }}</div>
+                    @endif
                     <div class="summary-total">
                         <span class="summary-total-label">Tổng tiền:</span>
-                        <span class="summary-total-amount">{{ number_format($total) }}đ</span>
+                        <span class="summary-total-amount">{{ number_format($totalEnd) }}đ</span>
                     </div>
-
                     <div
                         style="background-color: #f0f9ff; padding: 12px; border-radius: 8px; font-size: 0.85rem; color: #0369a1; text-align: center; border: 1px solid #bae6fd;">
                         ✓ Miễn phí giao hàng cho đơn hàng từ 500.000đ
