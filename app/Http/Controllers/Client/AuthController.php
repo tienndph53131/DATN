@@ -76,10 +76,12 @@ class AuthController extends Controller
         if (Auth::guard('client')->attempt($credentials)) {
             $request->session()->regenerate();
             $user = Auth::guard('client')->user();
-            // Nếu là admin va nhan vien → vào trang admin
-            if ($user->role_id == 1 || $user->role_id == 3) {
-                return redirect()->route('products.index')->with('success', 'Chào mừng:' . $user->name);
-            }
+
+            // Nếu là admin → vào trang admin
+           if ($user->role_id == 1 || $user->role_id == 3) {
+               return redirect()->route('admin.dashboard')->with('success', 'Chào mừng Admin:' . $user->name);            }
+            
+
             // Nếu là user → về trang chủ
             return redirect()->route('home')->with('success', 'Đăng nhập thành công!');
         }

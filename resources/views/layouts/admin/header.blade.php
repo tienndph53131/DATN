@@ -8,7 +8,8 @@
     <div class="dropdown">
         <a class="d-flex align-items-center text-decoration-none dropdown-toggle" href="#" role="button" id="adminMenu" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="fa-solid fa-user-circle fa-lg me-2 text-secondary"></i>
-            <span>{{ auth()->guard('client')->user()->name }}</span>
+            {{-- Hiển thị tên đang đăng nhập --}}
+            <span>{{ Auth::guard('client')->check() ? Auth::guard('client')->user()->name : 'Admin' }}</span>
         </a>
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenu">
             <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2"></i> Hồ sơ</a></li>

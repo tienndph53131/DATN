@@ -10,27 +10,25 @@ use App\Models\Role;
 class AccountController extends Controller
 {
     // 📋 Danh sách accounts + tìm kiếm
-    public function index(Request $request)
-    {
-        $query = Account::query();
+   public function index(Request $request)
+{
+    $query = Account::query();
 
-        // Ẩn tài khoản admin
-        $query->whereDoesntHave('role', function ($q) {
-            $q->whereIn('name', ['admin', 'staff']);
+    // Lọc chỉ lấy role 2 (user)
+    $query->where('role_id', 2);
+
+    // Tìm kiếm theo tên hoặc email
+    if ($request->filled('search')) {
+        $search = $request->input('search');
+        $query->where(function ($q) use ($search) {
+            $q->where('name', 'like', "%$search%")
+              ->orWhere('email', 'like', "%$search%");
         });
-
-        // Tìm kiếm theo tên hoặc email
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%$search%")
-                    ->orWhere('email', 'like', "%$search%");
-            });
-        }
-
-        $accounts = $query->paginate(10);
-        return view('admin.accounts.index', compact('accounts'));
     }
+
+    $accounts = $query->paginate(10);
+    return view('admin.accounts.index', compact('accounts'));
+}
 
     // 👁 Xem chi tiết
     public function show($id)
@@ -79,15 +77,5 @@ class AccountController extends Controller
         return redirect()->route('accounts.index')->with('success', 'Cập nhật tài khoản thành công!');
     }
 
-    // 🗑️ Xóa
-    public function destroy($id)
-    {
-        $account = Account::findOrFail($id);
-        if ($account->role && $account->role->name === 'admin') {
-            return redirect()->route('accounts.index')->with('error', 'Không thể xóa tài khoản admin!');
-        }
-
-        $account->delete();
-        return redirect()->route('accounts.index')->with('success', 'Xóa tài khoản thành công!');
-    }
+   
 }

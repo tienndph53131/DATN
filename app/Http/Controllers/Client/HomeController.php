@@ -151,4 +151,20 @@ class HomeController extends Controller
         if (str_starts_with($v, '#')) return $value;
         return $map[$v] ?? $value;
     }
+    public function search()
+{
+    $categories = Category::orderBy('name')->get();
+    $keyword = request()->keyword;
+
+    $products = Product::with('category')
+        ->where('status', 1)
+        ->where(function ($query) use ($keyword) {
+            $query->where('name', 'LIKE', '%' . $keyword . '%')
+                  ->orWhere('description', 'LIKE', '%' . $keyword . '%');
+        })
+        ->paginate(12);
+        
+
+    return view('client.search', compact('categories', 'products', 'keyword'));
+}
 }

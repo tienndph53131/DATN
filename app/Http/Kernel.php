@@ -1,8 +1,9 @@
 <?php
 
 namespace App\Http;
-
 use App\Http\Middleware\CheckAdmin;
+use App\Http\Middleware\AdminOnly;
+use App\Http\Middleware\BlockStaffOnAdmin;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
@@ -66,5 +67,7 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'admin' => CheckAdmin::class,
+        'admin.only' => AdminOnly::class,
+         'block.staff.admin' => BlockStaffOnAdmin::class,
     ];
 }

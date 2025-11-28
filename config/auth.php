@@ -37,6 +37,7 @@ return [
             'driver' => 'token',
             'provider' => 'accounts',
         ],
+        
     ],
 
     /*
