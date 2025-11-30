@@ -98,12 +98,6 @@
         <a href="{{ url('/') }}"><i class="fa-solid fa-house"></i> Trang chủ</a>
     </div>
 
-    <div class="main">
-        @include('layouts.admin.header') {{-- Header --}}
-        <div class="content">
-            @yield('content')
-        </div>
-
         <div class="main">
             @include('layouts.admin.header') {{-- Header --}}
             <div class="content">

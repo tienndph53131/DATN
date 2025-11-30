@@ -76,6 +76,7 @@ Route::middleware('auth:client')->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout', [CheckoutController::class, 'checkout'])->name('checkout.process');
     Route::post('/checkout/apply_discount', [CheckoutController::class, 'applyDiscount'])->name('checkout.applyDiscount');
+    Route::post('/checkout/clear_discount', [CheckoutController::class, 'clearDiscount'])->name('checkout.clearDiscount');
 });
 
 // MoMo
