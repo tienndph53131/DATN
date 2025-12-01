@@ -10,8 +10,13 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
-        'category_id', 'name', 'image',
-         'view', 'date', 'description', 'status'
+        'category_id',
+        'name',
+        'image',
+        'view',
+        'date',
+        'description',
+        'status'
     ];
 
     public function category()
@@ -24,16 +29,16 @@ class Product extends Model
         return $this->hasMany(ProductVariant::class);
     }
     public function images()
-{
-    return $this->hasMany(ProductImage::class);
-}
-// Comments / reviews for this product
+    {
+        return $this->hasMany(ProductImage::class);
+    }
+    // Comments / reviews for this product
     public function comments()
     {
         return $this->hasMany(Comment::class);
     }
-public function orderDetails()
-{
-    return $this->hasMany(OrderDetail::class, 'product_id'); 
-}
+    public function orderDetails()
+    {
+        return $this->hasMany(OrderDetail::class, 'product_id');
+    }
 }

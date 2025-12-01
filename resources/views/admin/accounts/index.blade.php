@@ -1,23 +1,25 @@
 @extends('layouts.admin.admin')
 
 @section('content')
-<div class="container mt-4">
-    <h2 class="mb-3">Quản lý tài khoản</h2>
+    @php
+        $currentUser = auth()->guard('client')->user();
+    @endphp
+    <div class="container mt-4">
+        <h2 class="mb-3">Quản lý tài khoản</h2>
 
-    <!-- Form tìm kiếm -->
-    <form method="GET" action="{{ route('accounts.index') }}" class="mb-3 d-flex">
-        <input type="text" name="search" class="form-control me-2"
-               placeholder="Tìm kiếm theo tên hoặc email..."
-               value="{{ request('search') }}">
-        <button type="submit" class="btn btn-primary">Tìm kiếm</button>
-    </form>
+        <!-- Form tìm kiếm -->
+        <form method="GET" action="{{ route('accounts.index') }}" class="mb-3 d-flex">
+            <input type="text" name="search" class="form-control me-2" placeholder="Tìm kiếm theo tên hoặc email..."
+                value="{{ request('search') }}">
+            <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+        </form>
 
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
+        @if(session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
 
     <table class="table table-bordered table-striped align-middle">
         <thead>
@@ -71,8 +73,8 @@
         </tbody>
     </table>
 
-    <div class="d-flex justify-content-center">
-        {{ $accounts->links() }}
+        <div class="d-flex justify-content-center">
+            {{ $accounts->links() }}
+        </div>
     </div>
-</div>
 @endsection

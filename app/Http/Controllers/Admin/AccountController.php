@@ -42,7 +42,6 @@ class AccountController extends Controller
 
         return view('admin.accounts.show', compact('account'));
     }
-
     // 🖋 Form sửa
     public function edit($id)
     {

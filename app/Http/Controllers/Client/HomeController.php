@@ -76,6 +76,14 @@ class HomeController extends Controller
             ];
         });
 
+        // Map color values to CSS safe strings to avoid declaring functions in views
+        $colors = $colors->map(function ($c) {
+            return (object) [
+                'value' => $c->value,
+                'css' => $this->colorToCss($c->value),
+            ];
+        });
+
         // Tạo dữ liệu JSON cho view JS
         $variantData = $product->variants->map(function ($v) {
             return [
@@ -97,6 +105,17 @@ class HomeController extends Controller
             $ratingCounts[$i] = $comments->where('rating', $i)->count();
         }
 
+
+        // Lấy bình luận đã duyệt để hiển thị
+        $comments = $product->comments()->where('status', 1)->with('account')->orderByDesc('date')->get();
+
+        // Rating aggregates
+        $avgRating = $comments->count() ? round($comments->avg('rating'), 1) : 0;
+        $totalReviews = $comments->count();
+        $ratingCounts = [];
+        for ($i = 5; $i >= 1; $i--) {
+            $ratingCounts[$i] = $comments->where('rating', $i)->count();
+        }
 
         return view('client.product-detail', compact(
             'categories',

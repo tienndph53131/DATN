@@ -3,8 +3,8 @@
 @section('title', 'Trang chủ')
 
 @section('content')
-<div class="container py-4">
-    <h2 class="mb-4 text-center fw-bold text-uppercase">Sản phẩm mới nhất</h2>
+    <div class="container py-4">
+        <h2 class="mb-4 text-center fw-bold text-uppercase">Sản phẩm mới nhất</h2>
 
     <div class="row">
         @foreach($products as $product)
@@ -20,17 +20,18 @@
                    <a  href="{{ route('product.show', $product->id) }}" class="text-decoration-none"> 
                     <h6 class="card-title fw-semibold mb-2">{{ $product->name }}</h6></a>
 
-                        @if($defaultVariant)
-                            <p class="fw-bold text-danger mb-3">{{ number_format($defaultVariant->price, 0, ',', '.') }} đ</p>
-                        @else
-                            <p class="text-muted mb-3">Chưa có giá</p>
-                        @endif
+                            @if($defaultVariant)
+                                <p class="fw-bold text-danger mb-3">{{ number_format($defaultVariant->price, 0, ',', '.') }} đ</p>
+                            @else
+                                <p class="text-muted mb-3">Chưa có giá</p>
+                            @endif
 
-                        <a href="{{ route('product.show', $product->id) }}" class="btn btn-outline-primary btn-sm">Xem chi tiết</a>
+                            <a href="{{ route('product.show', $product->id) }}" class="btn btn-outline-primary btn-sm">Xem chi
+                                tiết</a>
+                        </div>
                     </div>
                 </div>
-            </div>
-        @endforeach
+            @endforeach
+        </div>
     </div>
-</div>
 @endsection

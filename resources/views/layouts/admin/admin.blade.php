@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +16,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f4f5f7;
         }
+
         .sidebar {
             position: fixed;
             top: 0;
@@ -25,6 +27,7 @@
             color: #fff;
             padding-top: 20px;
         }
+
         .sidebar a {
             display: flex;
             align-items: center;
@@ -34,11 +37,18 @@
             margin: 5px 10px;
             border-radius: 5px;
         }
-        .sidebar a:hover, .sidebar a.active {
-            background: #4b5563;
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #4b55a63;
             color: #fff;
         }
-        .sidebar i { margin-right: 10px; width: 20px; text-align: center; }
+
+        .sidebar i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
 
         .main {
             margin-left: 220px;
@@ -53,49 +63,67 @@
         }
     </style>
 </head>
+
 <body>
 
-<div class="sidebar">
-    <h4 class="text-center mb-4"><i class="fa-solid fa-user-shield"></i> ADMIN</h4>
-    <a href="{{ url('/admin') }}" class="{{ request()->is('admin') ? 'active' : '' }}"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
-    <a href="{{ url('/admin/categories') }}" class="{{ request()->is('admin/categories*') ? 'active' : '' }}"><i class="fa-solid fa-layer-group"></i> Danh mục</a>
-    <a href="{{ url('/admin/products') }}" class="{{ request()->is('admin/products*') ? 'active' : '' }}"><i class="fa-solid fa-shirt"></i> Sản phẩm</a>
-    <a href="{{ url('/admin/orders') }}" class="{{ request()->is('admin/orders*') ? 'active' : '' }}"><i class="fa-solid fa-receipt"></i> Đơn hàng</a>
-<a href="{{ url('/admin/attribute_values') }}" class="{{ request()->is('admin/attribute_values*') ? 'active' : '' }}">
-    <i class="fa-solid fa-tag"></i> Giá trị thuộc tính
-</a>
-<a href="{{ route('accounts.index') }}" class="{{ request()->routeIs('accounts.*') ? 'active' : '' }}"><i class="fa-solid fa-users"></i> Người dùng</a>
-{{-- @if(Auth::guard('client')->check() && in_array(Auth::guard('client')->user()->role_id, [1,3])) --}}
-    <a href="{{ route('accountsadmin.index') }}" 
-       class="{{ request()->routeIs('accountsadmin.*') ? 'active' : '' }}">
-       <i class="fa-solid fa-users"></i> Admin / Nhân viên
-    </a>
-{{-- @endif    --}}
-     <li><a class="dropdown-item" href="{{ route('comments.index') }}"><i class="fa-solid fa-comments me-2"></i> Quản lý bình luận</a></li>
-            <li><hr class="dropdown-divider"></li>
-    <a href="{{ url('/') }}"><i class="fa-solid fa-house"></i> Trang chủ</a>
-</div>
+    <div class="sidebar">
+        <h4 class="text-center mb-4"><i class="fa-solid fa-user-shield"></i> ADMIN</h4>
+        <a href="{{ url('/admin') }}" class="{{ request()->is('admin') ? 'active' : '' }}"><i
+                class="fa-solid fa-gauge-high"></i> Dashboard</a>
+        <a href="{{ url('/admin/categories') }}" class="{{ request()->is('admin/categories*') ? 'active' : '' }}"><i
+                class="fa-solid fa-layer-group"></i> Danh mục</a>
+        <a href="{{ url('/admin/products') }}" class="{{ request()->is('admin/products*') ? 'active' : '' }}"><i
+                class="fa-solid fa-shirt"></i> Sản phẩm</a>
+        <a href="{{ url('/admin/orders') }}" class="{{ request()->is('admin/orders*') ? 'active' : '' }}"><i
+                class="fa-solid fa-receipt"></i> Đơn hàng</a>
+        <a href="{{ url('/admin/attribute_values') }}"
+            class="{{ request()->is('admin/attribute_values*') ? 'active' : '' }}">
+            <i class="fa-solid fa-tag"></i> Giá trị thuộc tính
+        </a>
+        <a href="{{ route('accounts.index') }}" class="{{ request()->routeIs('accounts.*') ? 'active' : '' }}"><i
+                class="fa-solid fa-users"></i> Người dùng</a>
+        {{-- @if(Auth::guard('client')->check() && in_array(Auth::guard('client')->user()->role_id, [1,3])) --}}
+        <a href="{{ route('accountsadmin.index') }}"
+            class="{{ request()->routeIs('accountsadmin.*') ? 'active' : '' }}">
+            <i class="fa-solid fa-users"></i> Admin / Nhân viên
+        </a>
+        {{-- @endif --}}
+        <a href="{{ url('/admin/discounts') }}" class="{{ request()->is('admin/discounts*') ? 'active' : ''}}"><i
+                class="fa-solid fa-ticket"></i>Mã giảm giá</a>
+        <li><a class="dropdown-item" href="{{ route('comments.index') }}"><i class="fa-solid fa-comments me-2"></i> Quản
+                lý bình luận</a></li>
+        <li>
+            <hr class="dropdown-divider">
+        </li>
+        <a href="{{ url('/') }}"><i class="fa-solid fa-house"></i> Trang chủ</a>
+    </div>
 
-<div class="main">
-    @include('layouts.admin.header')  {{-- Header --}}
-    <div class="content">
-        @yield('content')
-    </div>
-    @include('layouts.admin.footer')  {{-- Footer --}}
-</div>
-<!-- Toast container for admin notifications -->
-<div class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
-    <div id="globalToast" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-            <div class="toast-body" id="globalToastBody">&nbsp;</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        <div class="main">
+            @include('layouts.admin.header') {{-- Header --}}
+            <div class="content">
+                @if (session('error'))
+                    {{ session('error') }}
+                @endif
+                @yield('content')
+            </div>
+            @include('layouts.admin.footer') {{-- Footer --}}
         </div>
-    </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-@stack('scripts')
-@yield('scripts')
+        <!-- Toast container for admin notifications -->
+        <div class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+            <div id="globalToast" class="toast align-items-center text-bg-primary border-0" role="alert"
+                aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body" id="globalToastBody">&nbsp;</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                        aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        @stack('scripts')
+        @yield('scripts')
 </body>
+
 </html>
 <!-- Confirm modal used by admin pages for destructive actions -->
 <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">

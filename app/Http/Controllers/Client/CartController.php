@@ -119,7 +119,7 @@ class CartController extends Controller
             CartDetail::where('cart_id', $cart->id)
                 ->where('product_variant_id', $variantId)
                 ->delete();
-        }
+}
 
         // Tính tổng mới
         $total = $cart ? $cart->details()->sum('amount') : 0;
