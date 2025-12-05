@@ -316,11 +316,9 @@
             }
         }
     </style>
-
     @php
         $discountAmount = session('discount_amount', 0);
         $totalEnd = $total - $discountAmount;
-
     @endphp
     <div class="checkout-container">
         <div class="checkout-header">
@@ -439,36 +437,28 @@
                 <h3>Tóm tắt đơn hàng</h3>
 
                 @if (isset($cartDetails) && count($cartDetails) > 0)
-                        @foreach ($cartDetails as $item)
-                            <div class="summary-item">
-                                <span class="summary-item-label">{{ $item->productVariant->product->name }}</span>
-                                <span style="color: #2d3748; font-weight: 600;">{{ number_format($item->amount) }}đ</span>
-                            </div>
-                        @endforeach
-
-                        <div class="summary-divider"></div>
-                        <div class="discount-wrapper" style="margin: 24px 0;">
-                            <label for="discount_code"
-                                style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; color: #2d3748;">
-                                <i class="fa fa-ticket" aria-hidden="true" style="margin-right: 5px;"></i> Mã ưu đãi
-                            </label>
-                            {{-- <form action="{{ route('checkout.applyDiscount') }}" method="post" class="mb-3">
-                                @csrf
-                                <div class="mb-2">
-                                    <label for="discount_code">Ma giam gia</label>
-                                    <input type="text" name="discount_code" id="discount_code">
-                                </div>
-                                <button type="submit" class="btn btn-primary">Ap dung</button>
+                    @foreach ($cartDetails as $item)
+                        <div class="summary-item">
+                            <span class="summary-item-label">{{ $item->productVariant->product->name }}</span>
+                            <span style="color: #2d3748; font-weight: 600;">{{ number_format($item->amount) }}đ</span>
                         </div>
-                        </form> --}}
+                    @endforeach
+
+                    <div class="summary-divider"></div>
+                    <div class="discount-wrapper" style="margin: 24px 0;">
+                        <label for="discount_code"
+                            style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; color: #2d3748;">
+                            <i class="fa fa-ticket" aria-hidden="true" style="margin-right: 5px;"></i> Mã ưu đãi
+                        </label>
                         @if (session('discount_amount'))
                             <div class="applied-discount"
-                                style="position: relative; display: inline-block; background: #f0fdf4; color:#166534; padding: 8px 12px; border-radius: 8px; font-weight: 600px;">
+                                style="position: relative; display: inline-block; background: #ffff; color:#166534; padding: 8px 12px; border-radius: 8px; font-weight: 600px;">
                                 {{ session('discount_code') ?? 'Da ap dung'}}
                                 <form action="{{ route('checkout.clearDiscount') }}" method="post" style="margin-left: 8px;">
                                     @csrf
                                     <button type="submit"
-                                        style="background: none; border: none; color: #166534; font-weigth:bold; font-size: 16px; cursor: pointer;">&times;</button>
+                                        style="background: none; border: none; color: #166534; font-weigth:bold; font-size: 16px; cursor: pointer;"
+                                        onclick="return confirm('Bạn có chắc chắn muốn hủy áp mã giảm giá không')">&times;</button>
                                 </form>
                             </div>
                         @else
@@ -499,9 +489,9 @@
                         ✓ Miễn phí giao hàng cho đơn hàng từ 500.000đ
                     </div>
                 @else
-                <p style="text-align: center; color: #718096; padding: 20px;">Giỏ hàng của bạn trống</p>
-            @endif
+                    <p style="text-align: center; color: #718096; padding: 20px;">Giỏ hàng của bạn trống</p>
+                @endif
+            </div>
         </div>
-    </div>
     </div>
 @endsection

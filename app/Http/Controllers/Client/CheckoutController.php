@@ -51,6 +51,7 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Giỏ hàng trống không thể thanh toán');
         }
         $cartDetails = $cart->details()->with('productVariant.product')->get();
+        $discount = null;
         $discountAmount = session('discount_amount', 0);
 
         $total = $cartDetails->sum('amount');
@@ -63,10 +64,12 @@ class CheckoutController extends Controller
         try {
             if ($request->payment_id == 1) {
                 DB::beginTransaction();
-                if ($discount && $discount->usage_limit > 0) {
-                    $discount->decrement('usage_limit');
-                } else {
-                    return back()->with('discount_error', 'So luong nhap ma vuot qua gioi han');
+                if ($discount) {
+                    if ($discount->usage_limit > 0) {
+                        $discount->decrement('usage_limit');
+                    } else {
+                        return back()->with('discount_error', 'So luong nhap ma vuot qua gioi han');
+                    }
                 }
                 $order = Order::create([
                     'order_code' => 'DH' . time(),
@@ -90,14 +93,11 @@ class CheckoutController extends Controller
                         'price' => $item->price,
                         'amount' => $item->amount,
                     ]);
-
                     // tao don hang thi tru so luon san pham ton kho
                     $variant = ProductVariant::find($item['product_variant_id']);
                     $variant->decrement('stock_quantity', $item['quantity']);
                 }
-
                 session()->forget(['discount_amount', 'discount_code']);
-
                 $cart->details()->delete();
                 $cart->delete();  // Xóa giỏ hàng sau khi đặt hàng thành công
                 DB::commit();
@@ -226,6 +226,7 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Thanh toán thất bại');
         }
         $data = session('momo_order');
+        $discount = null;
         if (session()->has('discount_code')) {
             $discount = Discount::where('code', session('discount_code'))->first();
         }
@@ -233,10 +234,12 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Dữ liệu đơn hàng không tồn tại');
         }
         DB::beginTransaction();
-        if ($discount && $discount->usage_limit > 0) {
-            $discount->decrement('usage_limit');
-        } else {
-            return back()->with('discount_error', 'So luong nhap ma vuot qua gioi han');
+        if ($discount) {
+            if ($discount->usage_limit > 0) {
+                $discount->decrement('usage_limit');
+            } else {
+                return back()->with('discount_error', 'So luong nhap ma vuot qua gioi han');
+            }
         }
         try {
             $order = Order::create([
@@ -390,18 +393,20 @@ class CheckoutController extends Controller
     public function vnpayReturn(Request $request)
     {
         $data = session('vnpay_order');
-
         $vnp_ResponseCode = $request->get('vnp_ResponseCode');
+        $discount = null;
         if (session()->has('discount_code')) {
             $discount = Discount::where('code', session('discount_code'))->first();
         }
         if ($vnp_ResponseCode == '00') {
             // Thanh toan thanh cong
             DB::beginTransaction();
-            if ($discount && $discount->usage_limit > 0) {
-                $discount->decrement('usage_limit');
-            } else {
-                return back()->with('discount_error', 'So luong nhap ma vuot qua gioi han');
+            if ($discount) {
+                if ($discount->usage_limit > 0) {
+                    $discount->decrement('usage_limit');
+                } else {
+                    return back()->with('discount_error', 'So luong nhap ma vuot qua gioi han');
+                }
             }
             try {
                 $order = Order::create([
@@ -427,15 +432,12 @@ class CheckoutController extends Controller
                         'price' => $item['price'],
                         'amount' => $item['amount'],
                     ]);
-
                     $variant = ProductVariant::find($item['product_variant_id']);
                     if (!$variant || $variant->stock_quantity < $item['quantity']) {
                         throw new \Exception('Sản phẩm không đủ tồn kho.');
                     }
-
                     $variant->decrement('stock_quantity', $item['quantity']);
                 }
-
                 $cart = Cart::where('account_id', $data['account_id'])->first();
                 if ($cart) {
                     $cart->details()->delete();
@@ -492,9 +494,10 @@ class CheckoutController extends Controller
         ]);
         return back()->with('discount_success', 'Ap ma thanh cong');
     }
-    public function clearDiscount(Request $request){
+    public function clearDiscount(Request $request)
+    {
         $request->session()->forget('discount_code');
         $request->session()->forget('discount_amount');
-        return redirect()->back()->with('discount_success','Mã giảm giá đã bị hủy thành công!');
+        return redirect()->back()->with('discount_success', 'Mã giảm giá đã bị hủy thành công!');
     }
 }
