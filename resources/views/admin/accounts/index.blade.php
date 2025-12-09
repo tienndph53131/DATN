@@ -61,7 +61,7 @@
                 </td>
                 <td class="text-center">
                     <a href="{{ route('accounts.show', $account->id) }}" class="btn btn-sm btn-info">Xem</a>
-                    <a href="{{ route('accounts.edit', $account->id) }}" class="btn btn-sm btn-warning">Sửa</a>
+                    <a href="{{ route('accounts.edit', $account->id) }}" class="btn btn-sm btn-warning">hành động</a>
                    
                 </td>
             </tr>

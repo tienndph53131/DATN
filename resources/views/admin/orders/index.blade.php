@@ -30,10 +30,22 @@
         </div>
     </form>
 
-        <div class="row mb-3">
-            <div class="col-md-6 mb-2">
-                <input type="text" class="form-control" placeholder="Tìm kiếm theo mã đơn, khách hàng..." id="searchInput">
-            </div>
+        <form method="GET" action="">
+    <div class="row mb-3">
+        <div class="col-md-6 mb-2">
+            <input type="text"
+                   class="form-control"
+                   placeholder="Tìm kiếm theo mã đơn, khách hàng..."
+                   name="keyword"
+                   value="{{ request('keyword') }}">
+        </div>
+
+        <div class="col-md-2">
+            <button class="btn btn-primary">Tìm kiếm</button>
+        </div>
+    </div>
+</form>
+
             {{-- <div class="col-md-3 mb-2">
                 <select class="form-select" id="statusFilter">
                     <option value="">Tất cả trạng thái</option>
@@ -121,7 +133,7 @@
 
 <div class="d-flex justify-content-center mt-4">
     <nav aria-label="Order Pagination">
-        {{ $orders->links('pagination::bootstrap-5') }} 
+        {{ $orders->withQueryString()->links('pagination::bootstrap-5') }} 
     </nav>
 </div>
 @endsection

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Address;
+use App\Models\Discount;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -36,6 +37,9 @@ class OrderController extends Controller
             ->where('account_id', Auth::id())
             ->with(['details.product', 'details.variant.attributeValues', 'status', 'payment'])
             ->firstOrFail();
+            // Tính tổng giảm giá nếu có
+$discountAmount = $order->discount_amount ?? 0; // Nếu chưa có giá trị thì mặc định 0
+$order->discount_amount = $discountAmount;
 
         $order->ghn_address = null;
 
@@ -112,5 +116,45 @@ class OrderController extends Controller
             $order->save();
         }
     }
+// Khi người dùng xác nhận đã nhận hàng
+public function received($order_code)
+{
+    $order = Order::where('order_code', $order_code)
+        ->where('account_id', Auth::id())
+        ->firstOrFail();
+
+    // Chỉ cho phép khi đơn đang giao (4)
+    if ($order->status_id != 4) {
+        return back()->with('error', 'Không thể xác nhận nhận hàng.');
+    }
+
+    $order->status_id = 5; // Đã nhận hàng
+    $order->save();
+
+    // Tự cập nhật trạng thái thanh toán nếu COD
+    $this->updatePaymentStatusIfReceived($order);
+
+    return back()->with('success', 'Bạn đã xác nhận đã nhận hàng.');
+}
+
+
+
+// Khi người dùng yêu cầu hoàn hàng
+public function returnOrder($order_code)
+{
+    $order = Order::where('order_code', $order_code)
+        ->where('account_id', Auth::id())
+        ->firstOrFail();
+
+    // Chỉ cho phép khi đang giao
+    if ($order->status_id != 4) {
+        return back()->with('error', 'Không thể yêu cầu hoàn hàng.');
+    }
+
+    $order->status_id = 6; // Hoàn hàng
+    $order->save();
+
+    return back()->with('success', 'Yêu cầu hoàn hàng đã được ghi nhận.');
+}
 
 }

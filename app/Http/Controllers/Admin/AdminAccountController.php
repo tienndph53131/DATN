@@ -26,6 +26,7 @@ class AdminAccountController extends Controller
     // Xem chi tiết
     public function show($id)
     {
+        
         $account = Account::findOrFail($id);
         return view('admin.accountsadmin.show', compact('account'));
     }

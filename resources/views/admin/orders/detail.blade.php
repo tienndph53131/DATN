@@ -100,7 +100,7 @@
                             @php
                                 $isDisabled = false;
                                 
-                                //  Ngăn chặn quay ngược trạng thái (Trừ ID 8 - Hủy)
+                                //  Ngăn chặn quay ngược trạng thái (Trừ ID 7 - Hủy)
                                 if ($s->id < $currentStatusId && $s->id != 7) {
                                     $isDisabled = true;
                                 }
@@ -183,6 +183,11 @@
                     @endforeach
                 </tbody>
             </table>
+             @if ($order->discount_amount > 0)
+        <p class="fs-5 text-success">
+            <strong>Giảm giá:</strong> -{{ number_format($order->discount_amount) }} đ
+        </p>
+    @endif
             <div class="text-end">
                 <h4 class="fw-bold">Tổng tiền: {{ number_format($order->total) }} đ</h4>
             </div>

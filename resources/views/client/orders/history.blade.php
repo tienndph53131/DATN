@@ -31,11 +31,11 @@
                      <td>{{ $order->payment->payment_method_name ?? '---' }}</td> 
 
                     <td>
-                        <span class="badge bg-primary">{{ $order->status->status_name ?? '---' }}</span>
+                        <span class="{{ $statusColors[$order->status->status_name] ?? 'text-dark' }}">{{ $order->status->status_name ?? '---' }}</span>
                     </td>
                     <td>
-                        <span class="badge 
-                            {{ $order->paymentStatus && $order->paymentStatus->id == 2 ? 'bg-success' : 'bg-warning' }}">
+                        <span class="
+                            {{ $order->paymentStatus && $order->paymentStatus->id == 2 ? 'text-success fw-semibold' :  'text-warning fw-semibold'}}">
                             {{ $order->paymentStatus->status_name ?? '---' }}
                         </span>
                     </td>

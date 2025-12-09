@@ -26,6 +26,7 @@ return new class extends Migration
             // Các thông tin khác
             $table->dateTime('booking_date')->nullable();
             $table->decimal('total', 12, 2)->default(0);
+            $table->decimal('discount_amount', 12, 2)->default(0);
             $table->text('note')->nullable();
             
             // Liên kết với bảng payment_methods và order_status, payment_status

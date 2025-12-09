@@ -57,12 +57,9 @@ class AccountController extends Controller
         $account = Account::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'required|string|max:100',
-            'email' => 'required|email|unique:accounts,email,' . $id,
-            'phone' => 'nullable|string|max:20',
-            'role_id' => 'nullable|exists:roles,id',
+            
             'status' => 'required|in:0,1',
-            'avatar' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+            'avatar' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:4048',
         ]);
 
         // Nếu có upload ảnh mới

@@ -29,7 +29,7 @@
 
         <div class="mb-3">
             <label class="form-label">Nội dung</label>
-            <textarea name="content" class="form-control" rows="6">{{ $comment->content }}</textarea>
+            <textarea name="content" class="form-control" rows="6" required>{{ $comment->content }} </textarea>
         </div>
 
         <div class="mb-3">

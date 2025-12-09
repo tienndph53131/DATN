@@ -71,6 +71,8 @@
        <i class="fa-solid fa-users"></i> Admin / Nhân viên
     </a>
 {{-- @endif    --}}
+<a href="{{ url('/admin/discounts') }}" class="{{ request()->is('admin/discounts*') ? 'active' : ''}}"><i
+                class="fa-solid fa-ticket"></i>Mã giảm giá</a>
      <li><a class="dropdown-item" href="{{ route('comments.index') }}"><i class="fa-solid fa-comments me-2"></i> Quản lý bình luận</a></li>
             <li><hr class="dropdown-divider"></li>
     <a href="{{ url('/') }}"><i class="fa-solid fa-house"></i> Trang chủ</a>

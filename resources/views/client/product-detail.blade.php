@@ -605,7 +605,7 @@ document.addEventListener('DOMContentLoaded', function() {
         popup.style.opacity = 1;
         popup.style.transform = 'translateY(0)';
 
-        // Ẩn popup sau 3 giây
+        // Ẩn popup sau 4 giây
         setTimeout(() => {
             popup.style.opacity = 0;
             popup.style.transform = 'translateY(-20px)';

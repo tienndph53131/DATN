@@ -39,7 +39,7 @@
 
         <div class="mb-3">
             <label>Điện thoại</label>
-            <input type="text" name="phone" value="{{ $account->phone }}" class="form-control">
+            <input type="number" name="phone" value="{{ $account->phone }}" class="form-control">
         </div>
 
         <div class="mb-3">

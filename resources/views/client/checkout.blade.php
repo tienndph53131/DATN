@@ -279,6 +279,15 @@
             color: #3182ce;
         }
 
+        .applied-discount button {
+            line-height: 1;
+            padding: 0 4px;
+        }
+
+        .applied-discount button:hover {
+            color: #dc2626
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .checkout-content {
@@ -308,6 +317,11 @@
         }
     </style>
 
+    @php
+        $discountAmount = session('discount_amount', 0);
+        $totalEnd = $total - $discountAmount;
+
+    @endphp
     <div class="checkout-container">
         <div class="checkout-header">
             <h1>Thanh Toán</h1>
@@ -333,17 +347,20 @@
 
                         <div class="form-group">
                             <label for="name">Họ và tên</label>
-                            <input type="text" name="name" id="name" placeholder="Nhập họ và tên" value="{{ old('name', $account->name ?? '') }}" required>
+                            <input type="text" name="name" id="name" placeholder="Nhập họ và tên"
+                                value="{{ old('name', $account->name ?? '') }}" required>
                         </div>
 
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" name="email" id="email" placeholder="Nhập email" value="{{ old('email', $account->email ?? '') }}" required>
+                            <input type="email" name="email" id="email" placeholder="Nhập email"
+                                value="{{ old('email', $account->email ?? '') }}" required>
                         </div>
 
                         <div class="form-group">
                             <label for="phone">Số điện thoại</label>
-                            <input type="text" name="phone" id="phone" placeholder="Nhập số điện thoại" value="{{ old('phone', $account->phone ?? '') }}" required>
+                            <input type="text" name="phone" id="phone" placeholder="Nhập số điện thoại"
+                                value="{{ old('phone', $account->phone ?? '') }}" required>
                         </div>
 
                         <div class="form-group">
@@ -358,7 +375,6 @@
                             </select>
                         </div>
                         {{-- <input type="hidden" name="payment_id" value="1"> --}}
-
                         <!-- Giỏ hàng -->
                         @if (isset($cartDetails) && count($cartDetails) > 0)
                             <div class="cart-section">
@@ -392,16 +408,19 @@
                                         </tbody>
                                     </table>
                                 </div>
+                                <div class="form-group">
+                                    <label for="discountAmount">Giam gia</label>
+                                    <input type="text" name="discountAmount" id="discountAmount"
+                                        value="{{ number_format($discountAmount) }} VND" readonly>
+                                </div>
                                 <div class="cart-total">
                                     <span class="cart-total-label">Tổng cộng:</span>
-                                    <span class="cart-total-amount">{{ number_format($total) }}đ</span>
+                                    <span class="cart-total-amount">{{ number_format($totalEnd) }}đ</span>
                                 </div>
                             </div>
 
                             <hr>
-
                             <h3>Phương thức thanh toán</h3>
-
                             <div class="form-group">
                                 <select name="payment_id" required>
                                     <option value="1">COD (Thanh toán khi nhận hàng)</option>
@@ -413,16 +432,6 @@
                         @endif
                     </form>
                 </div>
-
-                <!-- MoMo Payment Form -->
-                {{-- <div class="checkout-form-section" style="margin-top: 20px;">
-                    <form action="{{ route('momo.payment') }}" method="post">
-                        @csrf
-                        <input type="hidden" name="total_momo" id="total_momo" value="{{ $total ?? 0 }}">
-                        <input type="hidden" name="payment_id" value="2">
-                        <button type="submit" class="btn btn-secondary">🏦 Thanh Toán MoMo</button>
-                    </form>
-                </div> --}}
             </div>
 
             <!-- Right Column - Order Summary -->
@@ -430,28 +439,69 @@
                 <h3>Tóm tắt đơn hàng</h3>
 
                 @if (isset($cartDetails) && count($cartDetails) > 0)
-                    @foreach ($cartDetails as $item)
-                        <div class="summary-item">
-                            <span class="summary-item-label">{{ $item->productVariant->product->name }}</span>
-                            <span style="color: #2d3748; font-weight: 600;">{{ number_format($item->amount) }}đ</span>
+                        @foreach ($cartDetails as $item)
+                            <div class="summary-item">
+                                <span class="summary-item-label">{{ $item->productVariant->product->name }}</span>
+                                <span style="color: #2d3748; font-weight: 600;">{{ number_format($item->amount) }}đ</span>
+                            </div>
+                        @endforeach
+
+                        <div class="summary-divider"></div>
+                        <div class="discount-wrapper" style="margin: 24px 0;">
+                            <label for="discount_code"
+                                style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; color: #2d3748;">
+                                <i class="fa fa-ticket" aria-hidden="true" style="margin-right: 5px;"></i> Mã ưu đãi
+                            </label>
+                            {{-- <form action="{{ route('checkout.applyDiscount') }}" method="post" class="mb-3">
+                                @csrf
+                                <div class="mb-2">
+                                    <label for="discount_code">Ma giam gia</label>
+                                    <input type="text" name="discount_code" id="discount_code">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Ap dung</button>
                         </div>
-                    @endforeach
-
-                    <div class="summary-divider"></div>
-
+                        </form> --}}
+                        @if (session('discount_amount'))
+                            <div class="applied-discount"
+                                style="position: relative; display: inline-block; background: #f0fdf4; color:#166534; padding: 8px 12px; border-radius: 8px; font-weight: 600px;">
+                                {{ session('discount_code') ?? 'Da ap dung'}}
+                                <form action="{{ route('checkout.clearDiscount') }}" method="post" style="margin-left: 8px;">
+                                    @csrf
+                                    <button type="submit"
+                                        style="background: none; border: none; color: #166534; font-weigth:bold; font-size: 16px; cursor: pointer;">&times;</button>
+                                </form>
+                            </div>
+                        @else
+                            <form action="{{ route('checkout.applyDiscount') }}" method="post">
+                                @csrf
+                                <div class="mb-3">
+                                    <label for="discount_code" class="form-label">Ma giam gia</label>
+                                    <div class="input-group">
+                                        <input type="text" name="discount_code" id="discount_code" placeholder="Nhập mã giảm giá"
+                                            class="form-control" autocomplete="off">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Áp dụng</button>
+                            </form>
+                        @endif
+                    </div>
+                    @if (session('discount_success'))
+                        <div class="alert alert-success">{{ session('discount_success') }}</div>
+                    @elseif(session('discount_error'))
+                        <div class="alert alert-danger">{{ session('discount_error') }}</div>
+                    @endif
                     <div class="summary-total">
                         <span class="summary-total-label">Tổng tiền:</span>
-                        <span class="summary-total-amount">{{ number_format($total) }}đ</span>
+                        <span class="summary-total-amount">{{ number_format($totalEnd) }}đ</span>
                     </div>
-
                     <div
                         style="background-color: #f0f9ff; padding: 12px; border-radius: 8px; font-size: 0.85rem; color: #0369a1; text-align: center; border: 1px solid #bae6fd;">
                         ✓ Miễn phí giao hàng cho đơn hàng từ 500.000đ
                     </div>
                 @else
-                    <p style="text-align: center; color: #718096; padding: 20px;">Giỏ hàng của bạn trống</p>
-                @endif
-            </div>
+                <p style="text-align: center; color: #718096; padding: 20px;">Giỏ hàng của bạn trống</p>
+            @endif
         </div>
+    </div>
     </div>
 @endsection

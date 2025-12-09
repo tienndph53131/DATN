@@ -8,22 +8,22 @@
         @csrf
         @method('PUT')
 
-        <!-- Tên -->
+         <!-- Họ tên -->
         <div class="mb-3">
             <label class="form-label">Họ tên</label>
-            <input type="text" name="name" class="form-control" value="{{ old('name', $account->name) }}" required>
+            <input type="text" class="form-control" value="{{ $account->name }}" readonly>
         </div>
 
         <!-- Email -->
         <div class="mb-3">
             <label class="form-label">Email</label>
-            <input type="email" name="email" class="form-control" value="{{ old('email', $account->email) }}" required>
+            <input type="email" class="form-control" value="{{ $account->email }}" readonly>
         </div>
 
-        <!-- Số điện thoại -->
+        <!-- Điện thoại -->
         <div class="mb-3">
             <label class="form-label">Điện thoại</label>
-            <input type="text" name="phone" class="form-control" value="{{ old('phone', $account->phone) }}">
+            <input type="text" class="form-control" value="{{ $account->phone }}" readonly>
         </div>
 
         <!-- Ảnh đại diện -->
@@ -33,21 +33,21 @@
                 <div class="mb-2">
                     <img src="{{ asset($account->avatar) }}" width="120" class="rounded shadow">
                 </div>
+            @else
+                <p class="text-muted">Không có ảnh</p>
             @endif
-            <input type="file" name="avatar" class="form-control">
         </div>
 
-                <!-- Giới tính -->
+        <!-- Giới tính -->
         <div class="mb-3">
             <label class="form-label">Giới tính</label>
-            <select name="sex" class="form-select">
+            <select class="form-select" disabled>
                 <option value="">-- Chọn giới tính --</option>
                 <option value="male" @selected($account->sex === 'male')>Nam</option>
                 <option value="female" @selected($account->sex === 'female')>Nữ</option>
                 <option value="other" @selected($account->sex === 'other')>Khác</option>
             </select>
         </div>
-
         <!-- Vai trò -->
         <div class="mb-3">
             <label class="form-label">Vai trò</label>

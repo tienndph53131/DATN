@@ -21,7 +21,7 @@ use App\Http\Controllers\Admin\CommentController;
 use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AdminAccountController;
-use App\Http\Controllers\Admin\AdminAuthController;
+use App\Http\Controllers\Admin\DiscountController;
 use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\CartController;
 use App\Http\Controllers\Client\AuthController;
@@ -41,6 +41,7 @@ Route::prefix('admin')->middleware('admin')->group(function () {
   Route::resource('comments', CommentController::class);
  Route::resource('accounts', AccountController::class)->except(['create', 'store']);
  Route::resource('orders', AdminOrderController::class);
+ Route::resource('discounts', DiscountController::class);
   // Chỉ block nhân viên trên module quản lý account
    Route::resource('accountsadmin', AdminAccountController::class)
     
@@ -55,7 +56,7 @@ Route::get('/search', [HomeController::class, 'search'])->name('client.search');
 // Admin bulk actions for comments
 Route::post('admin/comments/bulk', [CommentController::class, 'bulk'])->name('comments.bulk');
 // Client comment submission (requires client auth)
-Route::post('/product/{id}/comments', [CommentController::class, 'store'])
+Route::post('/product/{id}/comments', [\App\Http\Controllers\Client\CommentController::class, 'store'])
     ->name('product.comment.store')
     ->middleware('auth:client');
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -81,6 +82,9 @@ Route::middleware('auth:client')->group(function(){
 Route::get('/profile/wards', [ProfileController::class,'getWards'])->name('profile.wards');
  Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout', [CheckoutController::class, 'checkout'])->name('checkout.process');
+    Route::post('/checkout/apply_discount', [CheckoutController::class, 'applyDiscount'])->name('checkout.applyDiscount');
+       Route::post('/checkout/clear_discount', [CheckoutController::class, 'clearDiscount'])->name('checkout.clearDiscount');
+
 
 // Route for MoMo payment
 
@@ -102,6 +106,8 @@ Route::middleware('auth:client')->group(function () {
         Route::get('/{order_code}', [OrderController::class, 'detail'])->name('order.history.detail');
          Route::post('/order-history/{order_code}/cancel', [OrderController::class, 'cancel'])
         ->name('order.cancel');
+         Route::get('/orders/{order_code}/received', [OrderController::class, 'received'])->name('client.order.received');
+    Route::get('/orders/{order_code}/return', [OrderController::class, 'returnOrder'])->name('client.order.return');
     });
 });
 

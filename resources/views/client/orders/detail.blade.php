@@ -28,16 +28,15 @@
     @php
         $status = $order->status->status_name ?? '---';
         $statusClass = match($status) {
-           'Chưa xác nhận' => 'badge bg-secondary',
-            'Đã xác nhận' => 'badge bg-primary',
-            'Đang chuẩn bị hàng' => 'badge bg-info text-dark',
-            'Đang giao' => 'badge bg-warning text-dark',
-            'Đã giao' => 'badge bg-success',
-            'Đã nhận' => 'badge bg-success',
-            'Thành công' => 'badge bg-success',
-            'Hoàn hàng' => 'badge bg-danger',
-            'Hủy đơn hàng' => 'badge bg-dark',
-            default => 'badge bg-light text-dark',
+           'Chưa xác nhận'   => '',
+           'Đã xác nhận'   => 'text-primary',
+           'Đang giao'    => 'text-info',
+            'Đã giao'     => 'text-success',
+             'Đã nhận'  => 'text-success fw-bold',
+             'Hoàn hàng'  => 'text-warning',
+           'Hủy đơn hàng'  => 'text-danger',
+              default  => 'text-dark',
+
         };
     @endphp
 
@@ -46,9 +45,9 @@
 @php
     $paymentStatus = $order->paymentStatus->status_name ?? '---';
     $paymentClass = match($paymentStatus) {
-        'Chưa thanh toán' => 'badge bg-warning text-dark',
-        'Đã thanh toán' => 'badge bg-success',
-        default => 'badge bg-light text-dark',
+        'Chưa thanh toán' => 'text-warning fw-semibold',
+          'Đã thanh toán' => 'text-success fw-semibold',
+           default  => 'text-muted',
     };
 @endphp
 
@@ -64,9 +63,30 @@
         </button>
     </form>
 @endif
+@if($order->status_id == 4)
+    <div class="mt-2 d-flex gap-2">
+
+        <!-- Nút Đã nhận -->
+        <a href="{{ route('client.order.received', $order->order_code) }}"
+           class="btn btn-success btn-sm"
+           onclick="return confirm('Xác nhận đã nhận hàng?')">
+            Đã nhận
+        </a>
+
+        <!-- Nút Hoàn hàng -->
+        <a href="{{ route('client.order.return', $order->order_code) }}"
+           class="btn btn-danger btn-sm"
+           onclick="return confirm('Bạn muốn yêu cầu hoàn hàng?')">
+            Hoàn hàng
+        </a>
+
+    </div>
+@endif
+
     </div>
 
     <h5>Danh sách sản phẩm</h5>
+    
     <table class="table table-bordered align-middle">
         <thead class="table-secondary">
         <tr>
@@ -96,6 +116,12 @@
         @endforeach
         </tbody>
     </table>
+  {{-- Hiển thị giảm giá nếu có --}}
+    @if ($order->discount_amount > 0)
+        <p class="fs-5 text-success">
+            <strong>Giảm giá:</strong> -{{ number_format($order->discount_amount) }} đ
+        </p>
+    @endif
 
     <div class="text-end">
         <h4 class="fw-bold">Tổng tiền: {{ number_format($order->total) }} đ</h4>

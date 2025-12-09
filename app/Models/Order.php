@@ -17,6 +17,7 @@ class Order extends Model
         'address_id',
         'booking_date',
         'total',
+        'discount_amount',
         'note',
         'payment_id',
         'status_id',

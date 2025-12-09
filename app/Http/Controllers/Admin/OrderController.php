@@ -23,27 +23,46 @@ class OrderController extends Controller
      * Hiển thị danh sách đơn hàng
      */
     public function index(Request $request)
-    {
-        $terminalStatuses = [5, 6, 7];
+{
+    $terminalStatuses = [5, 6, 7];
     $terminalStatusesString = implode(', ', $terminalStatuses);
-    $filterStatusId = $request->input('status_id') ?? '';
-    $query = Order::with('account', 'details.productVariant.product');
-    
-    
 
-   if ($filterStatusId !== '') {
-        // Thêm điều kiện WHERE nếu có trạng thái được chọn 
+    $keyword = $request->input('keyword');   //  Lấy keyword tìm kiếm
+    $filterStatusId = $request->input('status_id') ?? '';
+
+    $query = Order::with('account', 'details.productVariant.product');
+
+    //  TÌM KIẾM
+    if (!empty($keyword)) {
+        $query->where(function($q) use ($keyword) {
+            $q->where('order_code', 'like', "%{$keyword}%")
+              ->orWhereHas('account', function($acc) use ($keyword) {
+                  $acc->where('name', 'like', "%{$keyword}%");
+              });
+        });
+    }
+
+    //  LỌC TRẠNG THÁI
+    if ($filterStatusId !== '') {
         $query->where('status_id', $filterStatusId);
     }
-        $orders = $query->orderByRaw("CASE 
-            WHEN status_id IN ({$terminalStatusesString}) THEN 1
-            ELSE 0
-        END ASC") 
-        ->latest() 
-        ->paginate(10);;
-        $status = OrderStatus::all(); // bảng order_status
-        return view('admin.orders.index', compact('orders', 'status','filterStatusId'));
-    }
+
+    // SẮP XẾP ƯU TIÊN
+    $orders = $query->orderByRaw("
+            CASE 
+                WHEN status_id IN ({$terminalStatusesString}) THEN 1
+                ELSE 0
+            END ASC
+        ")
+        ->latest()
+        ->paginate(10)
+        ->withQueryString(); //  giữ LẠI keyword + status khi phân trang
+
+    $status = OrderStatus::all();
+
+    return view('admin.orders.index', compact('orders', 'status', 'filterStatusId', 'keyword'));
+}
+
 
     /**
      * Hiển thị chi tiết đơn hàng
@@ -54,7 +73,10 @@ class OrderController extends Controller
         $order = $this->loadGhnAddress($order);
 
         $status = OrderStatus::all(); // bảng order_status
-        // Đã bỏ $paymentStatusList vì không còn dùng select box nữa
+        
+                    // Tính tổng giảm giá nếu có
+$discountAmount = $order->discount_amount ?? 0; // Nếu chưa có giá trị thì mặc định 0
+$order->discount_amount = $discountAmount;
 
         return view('admin.orders.detail', compact('order', 'status'));
     }
