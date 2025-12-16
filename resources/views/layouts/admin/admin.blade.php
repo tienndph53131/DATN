@@ -57,7 +57,7 @@
 
 <div class="sidebar">
     <h4 class="text-center mb-4"><i class="fa-solid fa-user-shield"></i> ADMIN</h4>
-    <a href="{{ url('/admin') }}" class="{{ request()->is('admin') ? 'active' : '' }}"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    <a href="{{ url('/admin') }}" class="{{ request()->is('admin') ? 'active' : '' }}"><i class="fa-solid fa-gauge-high"></i> Thống kê</a>
     <a href="{{ url('/admin/categories') }}" class="{{ request()->is('admin/categories*') ? 'active' : '' }}"><i class="fa-solid fa-layer-group"></i> Danh mục</a>
     <a href="{{ url('/admin/products') }}" class="{{ request()->is('admin/products*') ? 'active' : '' }}"><i class="fa-solid fa-shirt"></i> Sản phẩm</a>
     <a href="{{ url('/admin/orders') }}" class="{{ request()->is('admin/orders*') ? 'active' : '' }}"><i class="fa-solid fa-receipt"></i> Đơn hàng</a>
@@ -68,7 +68,7 @@
 {{-- @if(Auth::guard('client')->check() && in_array(Auth::guard('client')->user()->role_id, [1,3])) --}}
     <a href="{{ route('accountsadmin.index') }}" 
        class="{{ request()->routeIs('accountsadmin.*') ? 'active' : '' }}">
-       <i class="fa-solid fa-users"></i> Admin / Nhân viên
+       <i class="fa-solid fa-users"></i> Admin 
     </a>
 {{-- @endif    --}}
 <a href="{{ url('/admin/discounts') }}" class="{{ request()->is('admin/discounts*') ? 'active' : ''}}"><i

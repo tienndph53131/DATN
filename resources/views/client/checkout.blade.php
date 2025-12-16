@@ -393,7 +393,17 @@
                                         <tbody>
                                             @foreach ($cartDetails as $item)
                                                 <tr>
-                                                    <td>{{ $item->productVariant->product->name }}</td>
+                                                    <td>{{ $item->productVariant->product->name }}
+                                                       {{-- Ảnh sản phẩm --}}
+                                                            <div class="mt-1">
+                                                           <img src="{{ asset('uploads/products/' . ($item->productVariant->product->image ?? 'no-image.png')) }}"
+                                                              alt="{{ $item->productVariant->product->name }}"
+                                                                      style="width:60px; height:auto;"
+                                                                        class="rounded border">
+                                                                              </div>
+
+                                                    </td>
+                                                    
                                                     <td> @foreach ($item->productVariant->attributeValues as $value)
                                                         {{ $value->value }}
                                                     @endforeach
@@ -409,7 +419,7 @@
                                     </table>
                                 </div>
                                 <div class="form-group">
-                                    <label for="discountAmount">Giam gia</label>
+                                    <label for="discountAmount">Giảm giá</label>
                                     <input type="text" name="discountAmount" id="discountAmount"
                                         value="{{ number_format($discountAmount) }} VND" readonly>
                                 </div>

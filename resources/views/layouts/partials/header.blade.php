@@ -122,6 +122,9 @@
                         
                            
                         <a href="/contact" class="nav-item nav-link {{ request()->is('contact') ? 'active text-primary' : '' }}">Liên hệ</a>
+                        <a href="/điachi" class="nav-item nav-link {{ request()->is('dc') ? 'active text-primary' : '' }}">Địa chỉ</a>
+                        <a href="/sk" class="nav-item nav-link {{ request()->is('sk') ? 'active text-primary' : '' }}">Sự kiện</a>
+                        <a href="/giothieu" class="nav-item nav-link {{ request()->is('gt') ? 'active text-primary' : '' }}">Giới thiệu</a>
                     </div>
 
                     <div class="navbar-nav ml-auto py-0">

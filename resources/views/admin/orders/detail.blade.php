@@ -170,6 +170,12 @@
                             <td>
                                 {{ $detail->product->name ?? 'Sản phẩm đã xóa' }}
                                 @if($detail->variant)
+                                {{-- Ảnh sản phẩm --}}
+                                 @if($detail->product && $detail->product->image)
+                                <img src="{{ asset('uploads/products/' . $detail->product->image) }}"
+                                    class="rounded border mt-2"
+                                        style="width: 70px; height: auto;">
+                                       @endif
                                     <br>
                                     @foreach($detail->variant->attributeValues as $attr)
                                         <small>{{ $attr->attribute->name ?? '' }}: {{ $attr->value ?? '' }}</small>@if(!$loop->last), @endif

@@ -10,6 +10,11 @@
                 <label>Mã giảm giá</label>
                 <input type="text" name="code" class="form-control @error('code') is-invalid @enderror"
                     value="{{ $discount->code }}">
+                     @error('code')
+        <div class="invalid-feedback">
+            {{ $message }}
+        </div>
+    @enderror
             </div>
             <div class="mb-3">
                 <label>Mô tả</label>
@@ -40,10 +45,10 @@
                     value="{{ $discount->end_date }}">
             </div>
             <div class="mb-3">
-                <label>Active</label>
+                <label>Trạng thái</label>
                 <select name="active" id="active">
-                    <option value="1" @selected($discount->active == 1)>Kich hoat</option>
-                    <option value="0" @selected($discount->active == 0)>Khong kich hoat</option>
+                    <option value="1" @selected($discount->active == 1)>Kích hoạt</option>
+                    <option value="0" @selected($discount->active == 0)>Tắt</option>
                 </select>
             </div>
             <div class="mb-3">

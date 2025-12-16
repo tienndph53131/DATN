@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Discount;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Str;
 class DiscountController extends Controller
 {
     public function index(Request $request)
@@ -29,8 +29,14 @@ class DiscountController extends Controller
     }
     public function store(Request $request)
     {
+         $code = strtoupper(Str::slug($request->code, ''));
+
+    
+    $request->merge([
+        'code' => $code
+    ]);
         $data = $request->validate([
-            'code' => 'required|max:50',
+            'code' => 'required|max:50|unique:discounts,code',
             'description' => 'nullable',
             'discount_type' => 'required|in:percent,fixed',
             'discount_value' => 'required|numeric|min:1',
@@ -39,9 +45,13 @@ class DiscountController extends Controller
             'active' => 'required|boolean',
             'minimum_order_amount' => 'nullable|numeric|min:0',
             'usage_limit' => 'nullable|numeric|min:1'
-        ]);
+        ],[
+        'code.unique' => 'Mã giảm giá đã tồn tại',
+    ]);
+
+
         Discount::create($data);
-        return redirect()->route('discounts.index')->with('success', 'Them ma giam gia thanh cong');
+        return redirect()->route('discounts.index')->with('success', 'Thêm mã giảm giá thành công');
     }
     public function edit($id)
     {
@@ -51,8 +61,14 @@ class DiscountController extends Controller
     public function update(Request $request, $id)
     {
         $discount = Discount::findOrFail($id);
+         $code = strtoupper(Str::slug($request->code, ''));
+
+    // 2️ Ghi đè lại request
+    $request->merge([
+        'code' => $code
+    ]);
         $data = $request->validate([
-            'code' => 'required|max:50',
+            'code' => 'required|max:50|unique:discounts,code,' . $discount->id,
             'description' => 'nullable',
             'discount_type' => 'required|in:percent,fixed',
             'discount_value' => 'required|numeric|min:1',
@@ -61,9 +77,11 @@ class DiscountController extends Controller
             'active' => 'required|boolean',
             'minimum_order_amount' => 'nullable|numeric|min:0',
             'usage_limit' => 'nullable|numeric|min:1'
-        ]);
+        ],[
+        'code.unique' => 'Mã giảm giá đã tồn tại',
+    ]);
         $discount->update($data);
-        return redirect()->route('discounts.index')->with('success', 'Cap nhat ma giam gia thanh cong');
+        return redirect()->route('discounts.index')->with('success', 'Cập nhật mã giảm giá thành công');
     }
     public function destroy($id)
     {

@@ -8,7 +8,7 @@
 
         <!-- Chọn ma giam gia -->
         <select name="discount_type" class="form-select">
-            <option value="">-- Chọn ma giam gia --</option>
+            <option value="">-- Chọn mã giảm giá--</option>
             <option value="percent" {{ request('discount_type' == 'percent' ? 'selected' : '') }}>Phần trăm</option>
             <option value="fixed" {{ request('discount_type' == 'fixed' ? 'selected' : '') }}>Số tiền</option>
         </select>
@@ -50,7 +50,18 @@
                     <tr>
                         <td>{{ $discount->code }}</td>
                         <td>{{ $discount->description }}</td>
-                        <td>{{ $discount->discount_type}}</td>
+                        <td>
+                          @php
+                            $type = $discount->discount_type;
+                              $typeLabel = match($type) {
+                              'percent' => 'Giảm theo %',
+                              'fixed'   => 'Giảm theo số tiền',
+                               default   => 'Không xác định',
+                                                            };
+                                @endphp
+
+                                       {{ $typeLabel }}
+                         </td>
                         <td>
                             @if ($discount->discount_type == 'percent')
                                 {{ number_format($discount->discount_value, '0', ',', '.')}}%
@@ -62,9 +73,9 @@
                         <td>{{ $discount->end_date }}</td>
                         <td>
                             @if ($discount->active)
-                                <span class="badge bg-success">Active</span>
+                                <span class="badge bg-success">Kích hoạt</span>
                             @else
-                                <span class="badge bg-secodary">Inactive</span>
+                                <span class="badge bg-secondary">Tắt</span>
                             @endif
                         </td>
                         <td>{{ number_format($discount->minimum_order_amount, 0, ',', '.') }} VND</td>

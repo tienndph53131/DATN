@@ -51,7 +51,7 @@
                 <th>Trạng thái</th>
                 <td>
                     <span class="badge bg-{{ $account->status ? 'success' : 'secondary' }}">
-                        {{ $account->statut ? 'Hoạt động' : 'Ngừng hoạt động' }}
+                        {{ $account->status ? 'Hoạt động' : 'Ngừng hoạt động' }}
                     </span>
                 </td>
             </tr>

@@ -101,6 +101,12 @@
             <tr>
                <td>
     {{ $detail->product->name ?? 'Sản phẩm đã xóa' }}
+    {{-- Ảnh sản phẩm --}}
+    @if($detail->product && $detail->product->image)
+        <img src="{{ asset('uploads/products/' . $detail->product->image) }}"
+     class="rounded border mt-2"
+     style="width: 70px; height: auto;">
+    @endif
     @if($detail->variant)
         <br>
         @foreach($detail->variant->attributeValues as $attr)

@@ -17,7 +17,7 @@ class HomeController extends Controller
         $products = Product::with(['category', 'variants'])
             ->where('status', 1)
             ->latest('created_at')
-            ->take(8)
+            ->take(20)
             ->get();
 
         return view('client.home', compact('categories', 'products'));

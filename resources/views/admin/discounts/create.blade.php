@@ -1,14 +1,21 @@
 @extends('layouts.admin.admin')
 
 @section('content')
+ 
     <div class="container mt-4">
         <h2>Thêm mã giảm giá mới</h2>
+        
         <form action="{{ route('discounts.store') }}" method="POST">
             @csrf
             <div class="mb-3">
-                <label>Ma giảm giá </label>
+                <label>Mã giảm giá </label>
                 <input type="text" name="code" class="form-control @error('code') is-invalid @enderror"
                     value="{{ old('code') }}">
+                     @error('code')
+        <div class="invalid-feedback">
+            {{ $message }}
+        </div>
+    @enderror
             </div>
             <div class="mb-3">
                 <label>Mô tả</label>
@@ -38,7 +45,7 @@
                     value="{{ old('end_date') }}">
             </div>
             <div class="mb-3">
-                <label>Active</label>
+                <label>Trạng thái</label>
                 <select name="active" id="active">
                     <option value="1">Kích hoạt</option>
                     <option value="0">Không kích hoạt</option>

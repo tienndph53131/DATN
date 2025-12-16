@@ -3,7 +3,7 @@
 @section('content')
 
 <div class="container py-4">
-    <h1 class="mb-4">Dashboard</h1>
+    <h1 class="mb-4">Thống kê</h1>
 
     <!-- Bộ lọc thời gian -->
     <form method="get" class="mb-4 d-flex gap-2 align-items-center">
